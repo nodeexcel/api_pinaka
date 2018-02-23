@@ -9,9 +9,9 @@ router.post('', function(req, res) {
 router.post('/stripe_payment', function(req, res) {
     var token = req.body.stripeToken;
     var charge = stripe.charges.create({
-        amount: 444,
-        currency: "usd",
-        description: "test charge",
+        amount: req.body.amount,
+        currency: req.body.currency,
+        description: req.body.description,
         source: token,
     }, function(err, charge) {
         if (err) {

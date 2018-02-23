@@ -18,7 +18,7 @@ var ContactSchema = new Schema({
     CodeRedeemFlag: { type: Boolean, default: false },
     redeemCode: [{ id: { type: Schema.Types.ObjectId, ref: 'redeemCode' }, level: Number }],
     createdBy: String,
-    updatedBy: String,
+    modifiedBy: String,
     Infusion_synced_date: Date,
     anniversary: Date,
     gender: Boolean,
