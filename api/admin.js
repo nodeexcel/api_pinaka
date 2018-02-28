@@ -4,9 +4,12 @@ var errorCode = require('../constants/errorcode');
 var Contact = require('../models/contact');
 var Admin = require('../models/admin');
 var md5 = require('md5');
-var errorCode = require('../constants/errorcode');
 var auth = require("../middleware/auth");
 var jwt = require("jsonwebtoken");
+var user_activity = require("../service/user_activity")
+var infusion_service = require("../service/infusion_service")
+var redeemCode = require('../models/redeemCode');
+var admin_logs = require("../models/admin_logs")
 
 
 router.post('/Adminlogin', function(req, res) {
@@ -28,15 +31,18 @@ router.post('/Adminlogin', function(req, res) {
                 }, "secret_key", {
                     expiresIn: expiredIn,
                 });
-                res.json({ status: 1, token: token });
+                Admin.update({ _id: data._id }, { $set: { lastLogin: new Date() } }).then((res) => {
+                    console.log("logged in")
+                })
+                res.json({ status: 1, token: token, data: data });
             } else {
-                res.status(402).json({ message: "invalid username or password" });
+                res.status(400).json({ message: "invalid username or password" });
             }
         })
     }
 })
 
-router.post('/addAdminStaff', function(req, res) {
+router.post('/addAdminStaff', auth.requiresAdmin, function(req, res) {
     var reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (req.body.name == null || req.body.name == '') {
         res.status(400).json({ code: errorCode.signup.EMPTYNAME });
@@ -49,8 +55,7 @@ router.post('/addAdminStaff', function(req, res) {
     } else if (!reg.test(req.body.email)) {
         res.status(400).json({ code: errorCode.signup.INVALIDEMAIL });
     } else {
-        req.body.password = md5(req.body.password)
-        req.body.lastLogin = new Date();
+        req.body.password = md5(req.body.password);
         var adminData = new Admin(req.body);
         Admin.findOne({ email: req.body.email }).then((data) => {
             if (!data) {
@@ -58,7 +63,8 @@ router.post('/addAdminStaff', function(req, res) {
                     if (err) {
                         res.json(err)
                     } else {
-                        res.json({ status: 1, data: data })
+                        user_activity.userActivityLogs(req, data);
+                        res.json({ status: 1, message: "user added", data: data })
                     }
                 })
             } else {
@@ -68,7 +74,7 @@ router.post('/addAdminStaff', function(req, res) {
     }
 })
 
-router.get('/getAllAdminStaff', function(req, res) {
+router.get('/getAllAdminStaff', auth.requiresAdmin, function(req, res) {
     Admin.find({}).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
@@ -76,7 +82,7 @@ router.get('/getAllAdminStaff', function(req, res) {
     })
 })
 
-router.put('/updateAdminStaff', function(req, res) {
+router.put('/updateAdminStaff', auth.requiresAdmin, function(req, res) {
     Admin.update({ _id: req.body._id }, req.body).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
@@ -84,31 +90,23 @@ router.put('/updateAdminStaff', function(req, res) {
     })
 })
 
-router.delete('/deleteAdminStaff', function(req, res) {
+router.delete('/deleteAdminStaff', auth.requiresAdmin, function(req, res) {
     Admin.remove({ _id: req.body._id }).then((data) => {
+        res.json({ status: 1, message: "deleted", data: data })
+    }, (err) => {
+        res.status(400).json({ error: 1, message: "error occured", err: err })
+    })
+})
+
+router.post('/searchAdminStaff', auth.requiresAdmin, function(req, res) {
+    Admin.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })
 })
 
-router.post('/searchAdminStaff', function(req, res) {
-    let where = '';
-    if (req.body.type == "email") {
-        where = { 'email': { '$regex': new RegExp(req.body.email, 'i') } }
-    } else if (req.body.type == "name") {
-        where = { 'phone': { '$regex': new RegExp(req.body.name, 'i') } }
-    } else {
-        res.status(400).json({ error: 1, message: "please enter email or name" })
-    }
-    Admin.find(where, { "_id": 1, "name": 1, "email": 1 }).then((data) => {
-        res.json({ status: 1, data: data })
-    }, (err) => {
-        res.status(400).json({ error: 1, message: "error occured", err: err })
-    })
-})
-
-router.post('/addCustomer', function(req, res) {
+router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
     var name = req.body.name;
     var lastName = req.body.lastName;
     var email = req.body.email;
@@ -128,34 +126,33 @@ router.post('/addCustomer', function(req, res) {
     var address2 = req.body.address2
     var city = req.body.city;
     var state = req.body.state;
-    var redeemCode = req.body.redeemCode;
+    var redeem_code = req.body.redeemCode;
     var anniversary = req.body.anniversary;
     var occupation = req.body.occupation;
 
-
     //null validate
     if (name == null || name == '') {
-        res.status(401).json({ code: errorCode.signup.EMPTYNAME });
+        res.status(400).json({ code: errorCode.signup.EMPTYNAME });
     } else if (email == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYEMAIL });
+        res.status(400).json({ code: errorCode.signup.EMPTYEMAIL });
     } else if (birthday == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYBIRTHDAY });
+        res.status(400).json({ code: errorCode.signup.EMPTYBIRTHDAY });
     } else if (zipcode == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYZIPCODE });
+        res.status(400).json({ code: errorCode.signup.EMPTYZIPCODE });
     } else if (gender == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYGENDER });
+        res.status(400).json({ code: errorCode.signup.EMPTYGENDER });
     } else if (marital == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYMARITAL });
+        res.status(400).json({ code: errorCode.signup.EMPTYMARITAL });
     } else if (kids == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYKIDS });
+        res.status(400).json({ code: errorCode.signup.EMPTYKIDS });
     } else if (password == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYPASS });
+        res.status(400).json({ code: errorCode.signup.EMPTYPASS });
     } else if (source == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYSOURCE });
+        res.status(400).json({ code: errorCode.signup.EMPTYSOURCE });
     } else if (type == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYTYPE });
+        res.status(400).json({ code: errorCode.signup.EMPTYTYPE });
     } else if (interests == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYINTEREST });
+        res.status(400).json({ code: errorCode.signup.EMPTYINTEREST });
     } else {
         //remove trim
         name = name.trim();
@@ -172,30 +169,51 @@ router.post('/addCustomer', function(req, res) {
         var regPhone = /^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/;
 
         if (!reg.test(email)) {
-            res.status(401).json({ code: errorCode.signup.INVALIDEMAIL });
+            res.status(400).json({ code: errorCode.signup.INVALIDEMAIL });
         } else if (isNaN((new Date(birthday)).getTime())) {
-            res.status(401).json({ code: errorCode.signup.INVALIDBIRTHDAY });
+            res.status(400).json({ code: errorCode.signup.INVALIDBIRTHDAY });
         } else if (!regZip.test(zipcode)) {
-            res.status(401).json({ code: errorCode.signup.INVALIDZIPCODE });
+            res.status(400).json({ code: errorCode.signup.INVALIDZIPCODE });
         } else if (gender != '0' && gender != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDGENDER });
+            res.status(400).json({ code: errorCode.signup.INVALIDGENDER });
         } else if (marital != '0' && marital != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDMARITAL });
+            res.status(400).json({ code: errorCode.signup.INVALIDMARITAL });
         } else if (kids != '0' && kids != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDKIDS });
+            res.status(400).json({ code: errorCode.signup.INVALIDKIDS });
         } else if (source != '0' && source != '1' && source != '2' && source != '3') {
-            res.status(401).json({ code: errorCode.signup.INVALIDSOURCE });
+            res.status(400).json({ code: errorCode.signup.INVALIDSOURCE });
         } else if (type != '0' && type != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDTYPE });
+            res.status(400).json({ code: errorCode.signup.INVALIDTYPE });
         } else {
             //existing email or phone validate
             var contact = new Contact;
             Contact.findOne({ $or: [{ email: email }, { phone: phone }] }, function(err, user) {
                 if (user && user.email == email && email) {
-                    res.status(402).json({ code: errorCode.signup.DUPLICATEEMAIL });
+                    res.status(400).json({ code: errorCode.signup.DUPLICATEEMAIL });
                 } else if (user && user.phone == phone && phone) {
-                    res.status(402).json({ code: errorCode.signup.DUPLICATEPHONE });
+                    res.status(400).json({ code: errorCode.signup.DUPLICATEPHONE });
                 } else {
+                    if (redeem_code) {
+                        redeemCode.findOne({ redeem_code: redeem_code }).then((data) => {
+                            if (data) {
+                                contact.CodeRedeemFlag = true;
+                                contact.redeemCode = redeem_code;
+                                contact.reddeemed_date = new Date();
+                                customerObject(function(response) {
+                                    res.json({ status: 1, data: response })
+                                })
+                            } else {
+                                res.status(400).json({ error: 1, message: "redeem code does not exist" });
+                            }
+                        })
+                    } else {
+                        customerObject(function(response) {
+                            res.json({ status: 1, data: response })
+                        })
+                    }
+                }
+
+                function customerObject(callback) {
                     contact.name = name;
                     contact.lastName = lastName;
                     contact.email = email;
@@ -217,7 +235,9 @@ router.post('/addCustomer', function(req, res) {
                     contact.address1 = address1;
                     contact.address2 = address2;
                     contact.occupation = occupation;
-
+                    contact.anniversary = anniversary;
+                    contact.createdBy = req.user.email;
+                    contact.modifiedBy = req.user.email;
                     if (phone) {
                         contact.phone = phone;
                     }
@@ -233,37 +253,100 @@ router.post('/addCustomer', function(req, res) {
                         }
                         contact.interests = interestDATA;
                     }
+
                     contact.token = md5((contact.email | contact.phone) + contact.created_at);
+                    // infusion_service.createContact(req.body).then((infusion_data) => {
+                    // if (infusion_data.statusCode == 201) {
+                    // contact.infusion_id = infusion_data.body.id;
                     contact.save(function(err, data) {
                         if (err) {
                             res.status(400).json({ error: 1, message: "error occured", err: err })
                         } else {
-                            res.status(200).json({ status: 1, data: data });
+                            user_activity.userActivityLogs(req, data);
+                            callback(data);
                         }
                     });
+                    // } else {
+                    //     res.json(infusion_data)
+                    // }
+                    // })
                 }
             });
         }
     }
 })
 
-router.put('/updateCustomer', function(req, res) {
-    Contact.update({ _id: req.body._id }, req.body).then((data) => {
-        res.json({ status: 1, data: data })
-    }, (err) => {
-        res.status(400).json({ error: 1, message: "error occured", err: err })
+router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
+    req.body.modifiedBy = req.user.email;
+    if (req.body.interests) {
+        var interestDATA = [];
+        var interestsItems = req.body.interests.split(":");
+        for (var i = 0; i < interestsItems.length; i++) {
+            var temp = interestsItems[i].split(",");
+            interestDATA.push({
+                id: temp[0],
+                level: temp[1]
+            });
+        }
+    }
+    req.body.interests = interestDATA;
+    if (req.body.redeemCode) {
+        redeemCode.findOne({ redeem_code: req.body.redeemCode }).then((data) => {
+            if (data) {
+                req.body.redeemCode = req.body.redeemCode;
+                req.body.reddeemed_date = new Date();
+                updateCustomers(function(response) {
+                    res.json({ status: 1, data: response })
+                })
+            } else {
+                res.status(400).json({ error: 1, message: "redeem code does not exist" });
+            }
+        })
+    }
+    updateCustomers(function(response) {
+        res.json({ status: 1, message: "customer details updated", data: response })
     })
+
+    // else {
+    //     updateCustomers(function(response) {
+    //         res.json({ status: 1, message: "customer details updated", data: response })
+    //     })
+    // }
+    // if (req.body.infusion_id) {
+    //     infusion_service.updateContact(req.body).then((infusion_data) => {
+    //         if (infusion_data.statusCode == 200) {
+    //             Contact.update({ _id: req.body._id }, req.body).then((data) => {
+    //                 user_activity.userActivityLogs(req, data);
+    //                 res.json({ status: 1, message: "customer details updated", data: data })
+    //             }, (err) => {
+    //                 res.status(400).json({ error: 1, message: "error occured", err: err })
+    //             })
+    //         } else {
+    //             res.json(infusion_data)
+    //         }
+    //     })
+    // } else {
+    function updateCustomers(callback) {
+        Contact.update({ _id: req.body._id }, req.body).then((data) => {
+            user_activity.userActivityLogs(req, data);
+            res.json({ status: 1, message: "customer details updated", data: data })
+        }, (err) => {
+            res.status(400).json({ error: 1, message: "error occured", err: err })
+        })
+    }
+    // }
 })
 
-router.delete('/deleteCustomer', function(req, res) {
+router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
     Contact.remove({ _id: req.body._id }).then((data) => {
-        res.json({ status: 1, data: data })
+        res.json({ status: 1, message: "customer deleted", data: data })
     }, (err) => {
+        user_activity.userActivityLogs(req, data);
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })
 })
 
-router.get('/getAllCustomer', function(req, res) {
+router.get('/getAllCustomer', auth.requiresAdmin, function(req, res) {
     Contact.find({}).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
@@ -271,22 +354,21 @@ router.get('/getAllCustomer', function(req, res) {
     })
 })
 
-router.post('/search_allCustomers', function(req, res) {
-    let where = '';
-    if (req.body.type == "email") {
-        where = { 'email': { '$regex': new RegExp(req.body.email, 'i') } }
-    } else if (req.body.type == "phone") {
-        where = { 'phone': { '$regex': new RegExp(req.body.phone, 'i') } }
-    } else {
-        res.status(400).json({ error: 1, message: "please enter email or phone" })
-    }
-    Contact.find(where, { "_id": 1, "token": 1, "name": 1, "lastname": 1, "phone": 1, "email": 1, "sms_option": 1, "app_installed": 1 }).populate('interests.id').then((data) => {
+router.post('/search_allCustomers', auth.requiresAdmin, function(req, res) {
+    Contact.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { phone: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }, { "_id": 1, "token": 1, "name": 1, "lastname": 1, "phone": 1, "email": 1, "sms_option": 1, "app_installed": 1 }).populate('interests.id').then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })
 })
 
+router.get('/get_user_logs', auth.requiresAdmin, function(req, res) {
+    admin_logs.find({}).then((data) => {
+        res.json({ status: 1, data: data })
+    }, (err) => {
+        res.status(400).json({ error: 1, message: "error occured", err: err })
+    })
+})
 
 
 module.exports = router;

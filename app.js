@@ -7,6 +7,8 @@ var bodyParser = require('body-parser');
 var fileupload = require('express-fileupload');
 var cors = require('cors');
 var Admin = require('./service/admin');
+var infusion = require('./service/infusion')
+
 
 var user = require('./api/user');
 var interest = require('./api/interest');
@@ -17,6 +19,7 @@ var saved = require('./api/saved');
 var payment = require('./api/payment');
 var admin = require('./api/admin');
 var redeemCode = require('./api/redeemCode');
+var dashBoard = require('./api/dashBoard');
 
 var app = express();
 
@@ -47,6 +50,8 @@ app.use('/api/saved', saved);
 app.use('/api/payment', payment);
 app.use('/api/admin', admin);
 app.use('/api/RedeemCode', redeemCode);
+app.use('/api/infusion', infusion);
+app.use('/api/dashBoard', dashBoard);
 
 app.get('/', function(req, res) {
     return res.json({ 'result': 'server started' });
