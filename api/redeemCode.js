@@ -6,7 +6,7 @@ var redeemCode = require('../models/redeemCode');
 var errorCode = require('../constants/errorcode');
 var auth = require("../middleware/auth");
 
-router.post('/AddRedeemCode', function(req, res) {
+router.post('/AddRedeemCode', auth.requiresAdmin, function(req, res) {
     if (req.body.redeem_code == null || req.body.redeem_code == "") {
         res.status(400).json({ error: 1, message: "redeem code can not be empty" });
     } else {
@@ -31,7 +31,7 @@ router.post('/AddRedeemCode', function(req, res) {
                         res.status(400).json({ error: 1, message: "error occured", err: err })
                     })
                 } else {
-                    res.status(400).json({ status: 1, message: "redeem code already exist" })
+                    res.status(400).json({ error: 1, message: "redeem code already exist" })
                 }
 
             })
@@ -39,7 +39,7 @@ router.post('/AddRedeemCode', function(req, res) {
     }
 })
 
-router.get('/getAllRedeemCode', function(req, res) {
+router.get('/getAllRedeemCode', auth.requiresAdmin, function(req, res) {
     redeemCode.find({}).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
@@ -47,13 +47,13 @@ router.get('/getAllRedeemCode', function(req, res) {
     })
 })
 
-router.put('/updateRedeemCode', function(req, res) {
+router.put('/updateRedeemCode', auth.requiresAdmin, function(req, res) {
     if (req.body.redeem_code == null || req.body.redeem_code == "") {
         res.status(400).json({ error: 1, message: "redeem_code can not be empty" });
     } else if (req.body.type == null || req.body.type == "") {
         res.status(400).json({ error: 1, message: "type can not be empty" });
     } else {
-        redeemCode.update({ _id: req.body._id }, body).then((data) => {
+        redeemCode.update({ _id: req.body._id }, req.body).then((data) => {
             res.json({ status: 1, message: "redeem code updated", data: data })
         }, (err) => {
             res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -61,9 +61,9 @@ router.put('/updateRedeemCode', function(req, res) {
     }
 })
 
-router.delete('/deleteRedeemCode', function(req, res) {
-    redeemCode.remove({ _id: req.body._id }, body).then((data) => {
-        res.json({ status: 1, data: data })
+router.delete('/deleteRedeemCode', auth.requiresAdmin, function(req, res) {
+    redeemCode.remove({ _id: req.body._id }).then((data) => {
+        res.json({ status: 1, message: "deleted", data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })

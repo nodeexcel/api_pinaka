@@ -19,6 +19,7 @@ var saved = require('./api/saved');
 var payment = require('./api/payment');
 var admin = require('./api/admin');
 var redeemCode = require('./api/redeemCode');
+var dashBoard = require('./api/dashBoard');
 
 var app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/payment', payment);
 app.use('/api/admin', admin);
 app.use('/api/RedeemCode', redeemCode);
 app.use('/api/infusion', infusion);
+app.use('/api/dashBoard', dashBoard);
 
 app.get('/', function(req, res) {
     return res.json({ 'result': 'server started' });

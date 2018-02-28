@@ -7,6 +7,9 @@ var md5 = require('md5');
 var auth = require("../middleware/auth");
 var jwt = require("jsonwebtoken");
 var user_activity = require("../service/user_activity")
+var infusion_service = require("../service/infusion_service")
+var redeemCode = require('../models/redeemCode');
+var admin_logs = require("../models/admin_logs")
 
 
 router.post('/Adminlogin', function(req, res) {
@@ -89,22 +92,14 @@ router.put('/updateAdminStaff', auth.requiresAdmin, function(req, res) {
 
 router.delete('/deleteAdminStaff', auth.requiresAdmin, function(req, res) {
     Admin.remove({ _id: req.body._id }).then((data) => {
-        res.json({ status: 1, data: data })
+        res.json({ status: 1, message: "deleted", data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })
 })
 
 router.post('/searchAdminStaff', auth.requiresAdmin, function(req, res) {
-    let where = '';
-    if (req.body.type == "email") {
-        where = { 'email': { '$regex': new RegExp(req.body.email, 'i') } }
-    } else if (req.body.type == "name") {
-        where = { 'name': { '$regex': new RegExp(req.body.name, 'i') } }
-    } else {
-        res.status(400).json({ error: 1, message: "please enter email or name" })
-    }
-    Admin.find(where).then((data) => {
+    Admin.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -131,10 +126,9 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
     var address2 = req.body.address2
     var city = req.body.city;
     var state = req.body.state;
-    var redeemCode = req.body.redeemCode;
+    var redeem_code = req.body.redeemCode;
     var anniversary = req.body.anniversary;
     var occupation = req.body.occupation;
-
 
     //null validate
     if (name == null || name == '') {
@@ -199,6 +193,27 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                 } else if (user && user.phone == phone && phone) {
                     res.status(400).json({ code: errorCode.signup.DUPLICATEPHONE });
                 } else {
+                    if (redeem_code) {
+                        redeemCode.findOne({ redeem_code: redeem_code }).then((data) => {
+                            if (data) {
+                                contact.CodeRedeemFlag = true;
+                                contact.redeemCode = redeem_code;
+                                contact.reddeemed_date = new Date();
+                                customerObject(function(response) {
+                                    res.json({ status: 1, data: response })
+                                })
+                            } else {
+                                res.status(400).json({ error: 1, message: "redeem code does not exist" });
+                            }
+                        })
+                    } else {
+                        customerObject(function(response) {
+                            res.json({ status: 1, data: response })
+                        })
+                    }
+                }
+
+                function customerObject(callback) {
                     contact.name = name;
                     contact.lastName = lastName;
                     contact.email = email;
@@ -238,14 +253,23 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                         }
                         contact.interests = interestDATA;
                     }
+
                     contact.token = md5((contact.email | contact.phone) + contact.created_at);
+                    // infusion_service.createContact(req.body).then((infusion_data) => {
+                    // if (infusion_data.statusCode == 201) {
+                    // contact.infusion_id = infusion_data.body.id;
                     contact.save(function(err, data) {
                         if (err) {
                             res.status(400).json({ error: 1, message: "error occured", err: err })
                         } else {
-                            res.json({ status: 1, data: data });
+                            user_activity.userActivityLogs(req, data);
+                            callback(data);
                         }
                     });
+                    // } else {
+                    //     res.json(infusion_data)
+                    // }
+                    // })
                 }
             });
         }
@@ -254,26 +278,76 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
 
 router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
     req.body.modifiedBy = req.user.email;
-    Contact.update({ _id: req.body._id }, req.body).then((data) => {
-        user_activity.userActivityLogs(req, data);
-        res.json({ status: 1, message: "customer details updated", data: data })
-    }, (err) => {
-        res.status(400).json({ error: 1, message: "error occured", err: err })
+    if (req.body.interests) {
+        var interestDATA = [];
+        var interestsItems = req.body.interests.split(":");
+        for (var i = 0; i < interestsItems.length; i++) {
+            var temp = interestsItems[i].split(",");
+            interestDATA.push({
+                id: temp[0],
+                level: temp[1]
+            });
+        }
+    }
+    req.body.interests = interestDATA;
+    if (req.body.redeemCode) {
+        redeemCode.findOne({ redeem_code: req.body.redeemCode }).then((data) => {
+            if (data) {
+                req.body.redeemCode = req.body.redeemCode;
+                req.body.reddeemed_date = new Date();
+                updateCustomers(function(response) {
+                    res.json({ status: 1, data: response })
+                })
+            } else {
+                res.status(400).json({ error: 1, message: "redeem code does not exist" });
+            }
+        })
+    }
+    updateCustomers(function(response) {
+        res.json({ status: 1, message: "customer details updated", data: response })
     })
+
+    // else {
+    //     updateCustomers(function(response) {
+    //         res.json({ status: 1, message: "customer details updated", data: response })
+    //     })
+    // }
+    // if (req.body.infusion_id) {
+    //     infusion_service.updateContact(req.body).then((infusion_data) => {
+    //         if (infusion_data.statusCode == 200) {
+    //             Contact.update({ _id: req.body._id }, req.body).then((data) => {
+    //                 user_activity.userActivityLogs(req, data);
+    //                 res.json({ status: 1, message: "customer details updated", data: data })
+    //             }, (err) => {
+    //                 res.status(400).json({ error: 1, message: "error occured", err: err })
+    //             })
+    //         } else {
+    //             res.json(infusion_data)
+    //         }
+    //     })
+    // } else {
+    function updateCustomers(callback) {
+        Contact.update({ _id: req.body._id }, req.body).then((data) => {
+            user_activity.userActivityLogs(req, data);
+            res.json({ status: 1, message: "customer details updated", data: data })
+        }, (err) => {
+            res.status(400).json({ error: 1, message: "error occured", err: err })
+        })
+    }
+    // }
 })
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
     Contact.remove({ _id: req.body._id }).then((data) => {
         res.json({ status: 1, message: "customer deleted", data: data })
     }, (err) => {
+        user_activity.userActivityLogs(req, data);
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })
 })
 
 router.get('/getAllCustomer', auth.requiresAdmin, function(req, res) {
-    console.log(req.user)
     Contact.find({}).then((data) => {
-        user_activity.userActivityLogs(req, data);
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -281,21 +355,20 @@ router.get('/getAllCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.post('/search_allCustomers', auth.requiresAdmin, function(req, res) {
-    let where = '';
-    if (req.body.type == "email") {
-        where = { 'email': { '$regex': new RegExp(req.body.email, 'i') } }
-    } else if (req.body.type == "phone") {
-        where = { 'phone': { '$regex': new RegExp(req.body.phone, 'i') } }
-    } else {
-        res.status(400).json({ error: 1, message: "please enter email or phone" })
-    }
-    Contact.find(where, { "_id": 1, "token": 1, "name": 1, "lastname": 1, "phone": 1, "email": 1, "sms_option": 1, "app_installed": 1 }).populate('interests.id').then((data) => {
+    Contact.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { phone: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }, { "_id": 1, "token": 1, "name": 1, "lastname": 1, "phone": 1, "email": 1, "sms_option": 1, "app_installed": 1 }).populate('interests.id').then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
     })
 })
 
+router.get('/get_user_logs', auth.requiresAdmin, function(req, res) {
+    admin_logs.find({}).then((data) => {
+        res.json({ status: 1, data: data })
+    }, (err) => {
+        res.status(400).json({ error: 1, message: "error occured", err: err })
+    })
+})
 
 
 module.exports = router;

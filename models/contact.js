@@ -16,7 +16,8 @@ var ContactSchema = new Schema({
     birthday: Date,
     zipcode: String,
     CodeRedeemFlag: { type: Boolean, default: false },
-    redeemCode: [{ id: { type: Schema.Types.ObjectId, ref: 'redeemCode' }, level: Number }],
+    redeemCode: String,
+    reddeemed_date: Date,
     createdBy: String,
     modifiedBy: String,
     Infusion_synced_date: Date,
@@ -31,7 +32,8 @@ var ContactSchema = new Schema({
     type: Boolean,
     created_at: Date,
     updated_at: Date,
-    token: String
+    token: String,
+    infusion_id: String
 });
 
 module.exports = mongoose.model('contacts', ContactSchema);
