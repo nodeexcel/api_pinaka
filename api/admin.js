@@ -267,7 +267,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                         }
                     });
                     // } else {
-                    //     res.json(infusion_data)
+                    //     res.json({error:1,message:"can not add on infusionsoft",data:infusion_data})
                     // }
                     // })
                 }
@@ -290,42 +290,26 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
         }
     }
     req.body.interests = interestDATA;
-    if (req.body.redeemCode) {
-        redeemCode.findOne({ redeem_code: req.body.redeemCode }).then((data) => {
-            if (data) {
-                req.body.redeemCode = req.body.redeemCode;
-                req.body.reddeemed_date = new Date();
-                updateCustomers(function(response) {
-                    res.json({ status: 1, data: response })
-                })
-            } else {
-                res.status(400).json({ error: 1, message: "redeem code does not exist" });
-            }
-        })
-    }
     updateCustomers(function(response) {
         res.json({ status: 1, message: "customer details updated", data: response })
     })
 
-    // else {
-    //     updateCustomers(function(response) {
-    //         res.json({ status: 1, message: "customer details updated", data: response })
-    //     })
-    // }
+
     // if (req.body.infusion_id) {
     //     infusion_service.updateContact(req.body).then((infusion_data) => {
     //         if (infusion_data.statusCode == 200) {
-    //             Contact.update({ _id: req.body._id }, req.body).then((data) => {
-    //                 user_activity.userActivityLogs(req, data);
-    //                 res.json({ status: 1, message: "customer details updated", data: data })
-    //             }, (err) => {
-    //                 res.status(400).json({ error: 1, message: "error occured", err: err })
-    //             })
+    //  updateCustomers(function(response) {
+    //     res.json({ status: 1, message: "customer details updated", data: response })
+    // })
     //         } else {
     //             res.json(infusion_data)
     //         }
     //     })
-    // } else {
+    // } else { 
+    //     updateCustomers(function(response) {
+    //         res.json({ status: 1, message: "customer details updated", data: response })
+    //     })
+    // }
     function updateCustomers(callback) {
         Contact.update({ _id: req.body._id }, req.body).then((data) => {
             user_activity.userActivityLogs(req, data);
@@ -334,7 +318,6 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
             res.status(400).json({ error: 1, message: "error occured", err: err })
         })
     }
-    // }
 })
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
@@ -346,8 +329,8 @@ router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
     })
 })
 
-router.get('/getAllCustomer', auth.requiresAdmin, function(req, res) {
-    Contact.find({}).then((data) => {
+router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {
+    Contact.find({}).skip(req.params.page * 20).limit(20).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
