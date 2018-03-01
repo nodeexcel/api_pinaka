@@ -10,6 +10,7 @@ var user_activity = require("../service/user_activity")
 var infusion_service = require("../service/infusion_service")
 var redeemCode = require('../models/redeemCode');
 var admin_logs = require("../models/admin_logs")
+var Interest = require('../models/interest');
 
 
 router.post('/Adminlogin', function(req, res) {
@@ -255,21 +256,39 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     }
 
                     contact.token = md5((contact.email | contact.phone) + contact.created_at);
-                    // infusion_service.createContact(req.body).then((infusion_data) => {
-                    // if (infusion_data.statusCode == 201) {
-                    // contact.infusion_id = infusion_data.body.id;
-                    contact.save(function(err, data) {
-                        if (err) {
-                            res.status(400).json({ error: 1, message: "error occured", err: err })
-                        } else {
-                            user_activity.userActivityLogs(req, data);
-                            callback(data);
+
+                    // code added by arun on 1st march
+
+                    Interest.find({}, function(err, interests) {
+                        var interestsTextArrayForInfusion = [];
+                        if (interests.length > 0) {
+                            for (var i = 0; i < interests.length; i++) {
+                                var i_id = interests[i]._id;
+                                if (req.body.interests.indexOf(i_id) != -1) {
+                                    interestsTextArrayForInfusion.push(interests[i].name)
+                                }
+                            }
                         }
+                        infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                            if (infusion_data.statusCode == 201) {
+                                contact.infusion_id = infusion_data.body.id;
+                                contact.save(function(err, data) {
+                                    if (err) {
+                                        res.status(400).json({ error: 1, message: "error occured", err: err })
+                                    } else {
+                                        user_activity.userActivityLogs(req, data);
+                                        callback(data);
+                                    }
+                                });
+                            } else {
+                                res.json({ error: 1, message: "can not add on infusionsoft", data: infusion_data })
+                            }
+                        })
                     });
-                    // } else {
-                    //     res.json({error:1,message:"can not add on infusionsoft",data:infusion_data})
-                    // }
-                    // })
+
+
+
+
                 }
             });
         }

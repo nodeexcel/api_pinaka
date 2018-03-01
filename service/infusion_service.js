@@ -1,10 +1,15 @@
 var request = require('request')
 
 module.exports = {
-    createContact(body) {
+    createContact(body, interestsTextArrayForInfusion) {
+        // infusion custom fields id get it from here - https://developer.infusionsoft.com/docs/rest/#!/Contact/listCustomFieldsUsingGET
+        // redeemCode = 20
+        // App Installed = 18
+        // interests = 22
+
         return new Promise((resolve, reject) => {
             var requestObj = {
-                url: `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${body.email}&access_token=8mumwrje7xswfcwdry8y9f8m`,
+                url: `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${body.email}&access_token=wjsspj58bsv49px4ac3964kw`,
                 method: "get",
             }
             request(requestObj, function(err, exist_check) {
@@ -18,10 +23,20 @@ module.exports = {
                             "field": "EMAIL1"
                         }],
                         "given_name": body.name,
-                        "family_name": body.lastName
+                        "family_name": body.lastName,
+                        "custom_fields": [{
+                            "content": body.redeemCode,
+                            "id": 20
+                        }, {
+                            "content": body.app_installed,
+                            "id": 18
+                        }, {
+                            "content": interestsTextArrayForInfusion,
+                            "id": 22
+                        }]
                     };
                     var CreateequestObj = {
-                        url: `https://api.infusionsoft.com/crm/rest/v1/contacts?access_token=8mumwrje7xswfcwdry8y9f8m`,
+                        url: `https://api.infusionsoft.com/crm/rest/v1/contacts?access_token=wjsspj58bsv49px4ac3964kw`,
                         method: "post",
                         json: data
                     }
