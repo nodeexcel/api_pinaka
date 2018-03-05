@@ -9,7 +9,7 @@ module.exports = {
 
         return new Promise((resolve, reject) => {
             var requestObj = {
-                url: `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${body.email}&access_token=wjsspj58bsv49px4ac3964kw`,
+                url: `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${body.email}&access_token=k2ffrye2734uxhhrbcv87v2t`,
                 method: "get",
             }
             request(requestObj, function(err, exist_check) {
@@ -36,7 +36,7 @@ module.exports = {
                         }]
                     };
                     var CreateequestObj = {
-                        url: `https://api.infusionsoft.com/crm/rest/v1/contacts?access_token=wjsspj58bsv49px4ac3964kw`,
+                        url: `https://api.infusionsoft.com/crm/rest/v1/contacts?access_token=k2ffrye2734uxhhrbcv87v2t`,
                         method: "post",
                         json: data
                     }
@@ -60,10 +60,20 @@ module.exports = {
                     "field": "EMAIL1"
                 }],
                 "given_name": body.name,
-                "family_name": body.lastName
+                "family_name": body.lastName,
+                "custom_fields": [{
+                    "content": body.redeemCode,
+                    "id": 20
+                }, {
+                    "content": body.app_installed,
+                    "id": 18
+                }, {
+                    "content": interestsTextArrayForInfusion,
+                    "id": 22
+                }]
             };
             var updateRequestObj = {
-                url: `https://api.infusionsoft.com/crm/rest/v1/contacts/${body.infusion_id}?access_token=8mumwrje7xswfcwdry8y9f8m`,
+                url: `https://api.infusionsoft.com/crm/rest/v1/contacts/${body.infusion_id}?access_token=k2ffrye2734uxhhrbcv87v2t`,
                 method: "patch",
                 json: data
             }
@@ -80,7 +90,7 @@ module.exports = {
     deleteContact(body) {
         return new Promise((resolve, reject) => {
             var updateRequestObj = {
-                url: `https://api.infusionsoft.com/crm/rest/v1/contacts/${body.infusion_id}?access_token=8mumwrje7xswfcwdry8y9f8m`,
+                url: `https://api.infusionsoft.com/crm/rest/v1/contacts/${body.infusion_id}?access_token=k2ffrye2734uxhhrbcv87v2t`,
                 method: "delete",
             }
             request(updateRequestObj, function(err, response) {

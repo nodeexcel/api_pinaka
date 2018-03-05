@@ -84,6 +84,9 @@ router.get('/getAllAdminStaff', auth.requiresAdmin, function(req, res) {
 })
 
 router.put('/updateAdminStaff', auth.requiresAdmin, function(req, res) {
+    if (req.body.password) {
+        req.body.password = md5(req.body.password)
+    }
     Admin.update({ _id: req.body._id }, req.body).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
@@ -309,26 +312,27 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
         }
     }
     req.body.interests = interestDATA;
-    updateCustomers(function(response) {
-        res.json({ status: 1, message: "customer details updated", data: response })
-    })
-
-
-    // if (req.body.infusion_id) {
-    //     infusion_service.updateContact(req.body).then((infusion_data) => {
-    //         if (infusion_data.statusCode == 200) {
-    //  updateCustomers(function(response) {
+    // updateCustomers(function(response) {
     //     res.json({ status: 1, message: "customer details updated", data: response })
     // })
-    //         } else {
-    //             res.json(infusion_data)
-    //         }
-    //     })
-    // } else { 
-    //     updateCustomers(function(response) {
-    //         res.json({ status: 1, message: "customer details updated", data: response })
-    //     })
-    // }
+
+
+    if (req.body.infusion_id) {
+        infusion_service.updateContact(req.body).then((infusion_data) => {
+            if (infusion_data.statusCode == 200) {
+                updateCustomers(function(response) {
+                    res.json({ status: 1, message: "customer details updated", data: response })
+                })
+            } else {
+                res.json(infusion_data)
+            }
+        })
+    } else {
+        updateCustomers(function(response) {
+            res.json({ status: 1, message: "customer details updated", data: response })
+        })
+    }
+
     function updateCustomers(callback) {
         Contact.update({ _id: req.body._id }, req.body).then((data) => {
             user_activity.userActivityLogs(req, data);
@@ -357,7 +361,7 @@ router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {
 })
 
 router.post('/search_allCustomers', auth.requiresAdmin, function(req, res) {
-    Contact.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { phone: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }, { "_id": 1, "token": 1, "name": 1, "lastname": 1, "phone": 1, "email": 1, "sms_option": 1, "app_installed": 1 }).populate('interests.id').then((data) => {
+    Contact.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { phone: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })

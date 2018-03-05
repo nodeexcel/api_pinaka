@@ -3,21 +3,55 @@ var router = express.Router();
 var request = require('request')
 var infusion_service = require("./infusion_service")
 router.post('/test', function(req, res) {
-    console.log("========================================================================================", req)
+    // console.log("========================================================================================", req)
+    // console.log(req.headers)
+    // // var hookSecret = req.headers.X-Hook-Secret
+    // var hookSecret = req.headers['X-Hook-Secret'];
 
-    // var Url = "https://signin.infusionsoft.com/app/oauth/authorize"
-    // console.log("====================", Url + '?response_type=code&redirect_uri=localhost:3000/api/infusion/test&client_id=9gu4eryy3p42m3tnax2srfn6&scope=full')
+    // var url = "https://api.infusionsoft.com/token?grant_type=refresh_token&refresh_token=3wsead8ufg4j4f26y7ncwuam"
+    var url = "https://api.infusionsoft.com/token"
+    var encode = new Buffer("9gu4eryy3p42m3tnax2srfn6:JtPc4smbYU").toString('base64');
+    console.log(encode, "================")
+    var data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': '3wsead8ufg4j4f26y7ncwuam'
+    };
+
+    var requestObj = {
+        method: "POST",
+        uri: url,
+        headers: {
+            'Authorization': 'Basic ' + encode,
+            'Content-Type': 'application / json',
+        },
+        // KeepAlive: true,
+        json: data,
+        // body: data
+    }
+    request(requestObj, function(err, refresh_token) {
+        console.log(err)
+        console.log(refresh_token)
+        res.json(refresh_token)
+    })
+
+
+
+
+
+
+    // var Url = "https://accounts.infusionsoft.com/app/oauth/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdeveloper.infusionsoft.com%2Fdocs%2Frest%2Fo2c.html&realm=realm&client_id=9gu4eryy3p42m3tnax2srfn6&scope=&state=0.5501674243911037"
+    // // console.log("====================", Url + '?response_type=code&redirect_uri=localhost:3000/api/infusion/test&client_id=9gu4eryy3p42m3tnax2srfn6&scope=full')
 
     // var requestObj = {
     //     url: Url + '?response_type=code&redirect_uri=localhost:3000/api/infusion/test&client_id=9gu4eryy3p42m3tnax2srfn6&scope=full',
     //     method: "post",
     // }
 
-    //     // var tokenUrl = "https://api.infusionsoft.com/token"
-    //     // var requestObj = {
-    //     //     url: tokenUrl + '?response_type=code&redirect_uri=localhost:3000/api/infusion/test&client_id=9gu4eryy3p42m3tnax2srfn6&scope=full',
-    //     //     method: "post",
-    //     // }
+    // var tokenUrl = "https://api.infusionsoft.com/token"
+    // var requestObj = {
+    //     url: tokenUrl + '?response_type=code&redirect_uri=localhost:3000/api/infusion/test&client_id=9gu4eryy3p42m3tnax2srfn6&scope=full&grant_type=authorization_code',
+    //     method: "post",
+    // }
     // var data = {
     //     "email_addresses": [{
     //         "email": "test1@gmail.com",
@@ -49,12 +83,15 @@ router.post('/test', function(req, res) {
 
     // // Make API call
     // request(requestObj, function(err, response) {
-    //     var obj = JSON.parse(response.body);
+    // //     var obj = JSON.parse(response.body);
 
-    //     console.log(obj.count, "=================")
+    // //     console.log(obj.count, "=================")
     //     res.json(response)
     // })
-    res.json("testing")
+
+    // res.setHeader('X-Hook-Secret', hookSecret)
+
+    // res.json("testing")
     // infusion_service.createContact(req.body).then((infusion_data) => {
     //     if (infusion_data.statusCode == 201) {
     //         res.json(infusion_data)
