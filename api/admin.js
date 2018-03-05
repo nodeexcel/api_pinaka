@@ -10,6 +10,7 @@ var user_activity = require("../service/user_activity")
 var infusion_service = require("../service/infusion_service")
 var redeemCode = require('../models/redeemCode');
 var admin_logs = require("../models/admin_logs")
+var Interest = require('../models/interest');
 
 
 router.post('/Adminlogin', function(req, res) {
@@ -83,6 +84,9 @@ router.get('/getAllAdminStaff', auth.requiresAdmin, function(req, res) {
 })
 
 router.put('/updateAdminStaff', auth.requiresAdmin, function(req, res) {
+    if (req.body.password) {
+        req.body.password = md5(req.body.password)
+    }
     Admin.update({ _id: req.body._id }, req.body).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
@@ -255,21 +259,39 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     }
 
                     contact.token = md5((contact.email | contact.phone) + contact.created_at);
-                    // infusion_service.createContact(req.body).then((infusion_data) => {
-                    // if (infusion_data.statusCode == 201) {
-                    // contact.infusion_id = infusion_data.body.id;
-                    contact.save(function(err, data) {
-                        if (err) {
-                            res.status(400).json({ error: 1, message: "error occured", err: err })
-                        } else {
-                            user_activity.userActivityLogs(req, data);
-                            callback(data);
+
+                    // code added by arun on 1st march
+
+                    Interest.find({}, function(err, interests) {
+                        var interestsTextArrayForInfusion = [];
+                        if (interests.length > 0) {
+                            for (var i = 0; i < interests.length; i++) {
+                                var i_id = interests[i]._id;
+                                if (req.body.interests.indexOf(i_id) != -1) {
+                                    interestsTextArrayForInfusion.push(interests[i].name)
+                                }
+                            }
                         }
+                        infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                            if (infusion_data.statusCode == 201) {
+                                contact.infusion_id = infusion_data.body.id;
+                                contact.save(function(err, data) {
+                                    if (err) {
+                                        res.status(400).json({ error: 1, message: "error occured", err: err })
+                                    } else {
+                                        user_activity.userActivityLogs(req, data);
+                                        callback(data);
+                                    }
+                                });
+                            } else {
+                                res.json({ error: 1, message: "can not add on infusionsoft", data: infusion_data })
+                            }
+                        })
                     });
-                    // } else {
-                    //     res.json(infusion_data)
-                    // }
-                    // })
+
+
+
+
                 }
             });
         }
@@ -290,42 +312,27 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
         }
     }
     req.body.interests = interestDATA;
-    if (req.body.redeemCode) {
-        redeemCode.findOne({ redeem_code: req.body.redeemCode }).then((data) => {
-            if (data) {
-                req.body.redeemCode = req.body.redeemCode;
-                req.body.reddeemed_date = new Date();
+    // updateCustomers(function(response) {
+    //     res.json({ status: 1, message: "customer details updated", data: response })
+    // })
+
+
+    if (req.body.infusion_id) {
+        infusion_service.updateContact(req.body).then((infusion_data) => {
+            if (infusion_data.statusCode == 200) {
                 updateCustomers(function(response) {
-                    res.json({ status: 1, data: response })
+                    res.json({ status: 1, message: "customer details updated", data: response })
                 })
             } else {
-                res.status(400).json({ error: 1, message: "redeem code does not exist" });
+                res.json(infusion_data)
             }
         })
+    } else {
+        updateCustomers(function(response) {
+            res.json({ status: 1, message: "customer details updated", data: response })
+        })
     }
-    updateCustomers(function(response) {
-        res.json({ status: 1, message: "customer details updated", data: response })
-    })
 
-    // else {
-    //     updateCustomers(function(response) {
-    //         res.json({ status: 1, message: "customer details updated", data: response })
-    //     })
-    // }
-    // if (req.body.infusion_id) {
-    //     infusion_service.updateContact(req.body).then((infusion_data) => {
-    //         if (infusion_data.statusCode == 200) {
-    //             Contact.update({ _id: req.body._id }, req.body).then((data) => {
-    //                 user_activity.userActivityLogs(req, data);
-    //                 res.json({ status: 1, message: "customer details updated", data: data })
-    //             }, (err) => {
-    //                 res.status(400).json({ error: 1, message: "error occured", err: err })
-    //             })
-    //         } else {
-    //             res.json(infusion_data)
-    //         }
-    //     })
-    // } else {
     function updateCustomers(callback) {
         Contact.update({ _id: req.body._id }, req.body).then((data) => {
             user_activity.userActivityLogs(req, data);
@@ -334,7 +341,6 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
             res.status(400).json({ error: 1, message: "error occured", err: err })
         })
     }
-    // }
 })
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
@@ -346,8 +352,8 @@ router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
     })
 })
 
-router.get('/getAllCustomer', auth.requiresAdmin, function(req, res) {
-    Contact.find({}).then((data) => {
+router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {
+    Contact.find({}).skip(req.params.page * 20).limit(20).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -355,7 +361,7 @@ router.get('/getAllCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.post('/search_allCustomers', auth.requiresAdmin, function(req, res) {
-    Contact.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { phone: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }, { "_id": 1, "token": 1, "name": 1, "lastname": 1, "phone": 1, "email": 1, "sms_option": 1, "app_installed": 1 }).populate('interests.id').then((data) => {
+    Contact.find({ $or: [{ email: { '$regex': new RegExp(req.body.search, 'i') } }, { phone: { '$regex': new RegExp(req.body.search, 'i') } }, { name: { '$regex': new RegExp(req.body.search, 'i') } }] }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
