@@ -5,32 +5,31 @@ var infusion_service = require("./infusion_service")
 router.post('/test', function(req, res) {
     // console.log("========================================================================================", req)
     // console.log(req.headers)
-    // // var hookSecret = req.headers.X-Hook-Secret
+    // var hookSecret = req.headers.X-Hook-Secret
     // var hookSecret = req.headers['X-Hook-Secret'];
-
     // var url = "https://api.infusionsoft.com/token?grant_type=refresh_token&refresh_token=3wsead8ufg4j4f26y7ncwuam"
+
+
+
     var url = "https://api.infusionsoft.com/token"
     var encode = new Buffer("9gu4eryy3p42m3tnax2srfn6:JtPc4smbYU").toString('base64');
-    console.log(encode, "================")
-    var data = {
-        'grant_type': 'refresh_token',
-        'refresh_token': '3wsead8ufg4j4f26y7ncwuam'
-    };
-
+    // var data = {
+    //     'grant_type': 'refresh_token',
+    //     'refresh_token': '39z2a6pexvwjxkuc5qdhb7vq'
+    // };
+    // console.log(data)
     var requestObj = {
         method: "POST",
         uri: url,
         headers: {
             'Authorization': 'Basic ' + encode,
-            'Content-Type': 'application / json',
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        // KeepAlive: true,
-        json: data,
-        // body: data
+        json: true,
+        form: 'grant_type=refresh_token&refresh_token=39z2a6pexvwjxkuc5qdhb7vq'
     }
     request(requestObj, function(err, refresh_token) {
-        console.log(err)
-        console.log(refresh_token)
+        // console.log(refresh_token)
         res.json(refresh_token)
     })
 

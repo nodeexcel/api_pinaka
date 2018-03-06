@@ -288,10 +288,6 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                             }
                         })
                     });
-
-
-
-
                 }
             });
         }
@@ -318,14 +314,25 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
 
 
     if (req.body.infusion_id) {
-        infusion_service.updateContact(req.body).then((infusion_data) => {
-            if (infusion_data.statusCode == 200) {
-                updateCustomers(function(response) {
-                    res.json({ status: 1, message: "customer details updated", data: response })
-                })
-            } else {
-                res.json(infusion_data)
+        Interest.find({}, function(err, interests) {
+            var interestsTextArrayForInfusion = [];
+            if (interests.length > 0) {
+                for (var i = 0; i < interests.length; i++) {
+                    var i_id = interests[i]._id;
+                    if (req.body.interests.indexOf(i_id) != -1) {
+                        interestsTextArrayForInfusion.push(interests[i].name)
+                    }
+                }
             }
+            infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                if (infusion_data.statusCode == 200) {
+                    updateCustomers(function(response) {
+                        res.json({ status: 1, message: "customer details updated", data: response })
+                    })
+                } else {
+                    res.json(infusion_data)
+                }
+            })
         })
     } else {
         updateCustomers(function(response) {
