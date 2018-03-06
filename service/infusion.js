@@ -26,7 +26,7 @@ router.post('/test', function(req, res) {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         json: true,
-        form: 'grant_type=refresh_token&refresh_token=39z2a6pexvwjxkuc5qdhb7vq'
+        form: 'grant_type=refresh_token&refresh_token=u5ypq9vgmcecfre6zkjvstsv'
     }
     request(requestObj, function(err, refresh_token) {
         // console.log(refresh_token)

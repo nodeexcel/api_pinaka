@@ -295,6 +295,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
+    var interestForInfusion = req.body.interests;
     req.body.modifiedBy = req.user.email;
     if (req.body.interests) {
         var interestDATA = [];
@@ -306,12 +307,8 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
                 level: temp[1]
             });
         }
+        req.body.interests = interestDATA;
     }
-    req.body.interests = interestDATA;
-    // updateCustomers(function(response) {
-    //     res.json({ status: 1, message: "customer details updated", data: response })
-    // })
-
 
     if (req.body.infusion_id) {
         Interest.find({}, function(err, interests) {
@@ -319,7 +316,7 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
             if (interests.length > 0) {
                 for (var i = 0; i < interests.length; i++) {
                     var i_id = interests[i]._id;
-                    if (req.body.interests.indexOf(i_id) != -1) {
+                    if (interestForInfusion.indexOf(i_id) != -1) {
                         interestsTextArrayForInfusion.push(interests[i].name)
                     }
                 }
