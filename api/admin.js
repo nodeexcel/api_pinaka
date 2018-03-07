@@ -288,10 +288,6 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                             }
                         })
                     });
-
-
-
-
                 }
             });
         }
@@ -299,6 +295,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
+    var interestForInfusion = req.body.interests;
     req.body.modifiedBy = req.user.email;
     if (req.body.interests) {
         var interestDATA = [];
@@ -310,22 +307,29 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
                 level: temp[1]
             });
         }
+        req.body.interests = interestDATA;
     }
-    req.body.interests = interestDATA;
-    // updateCustomers(function(response) {
-    //     res.json({ status: 1, message: "customer details updated", data: response })
-    // })
-
 
     if (req.body.infusion_id) {
-        infusion_service.updateContact(req.body).then((infusion_data) => {
-            if (infusion_data.statusCode == 200) {
-                updateCustomers(function(response) {
-                    res.json({ status: 1, message: "customer details updated", data: response })
-                })
-            } else {
-                res.json(infusion_data)
+        Interest.find({}, function(err, interests) {
+            var interestsTextArrayForInfusion = [];
+            if (interests.length > 0) {
+                for (var i = 0; i < interests.length; i++) {
+                    var i_id = interests[i]._id;
+                    if (interestForInfusion.indexOf(i_id) != -1) {
+                        interestsTextArrayForInfusion.push(interests[i].name)
+                    }
+                }
             }
+            infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                if (infusion_data.statusCode == 200) {
+                    updateCustomers(function(response) {
+                        res.json({ status: 1, message: "customer details updated", data: response })
+                    })
+                } else {
+                    res.json(infusion_data)
+                }
+            })
         })
     } else {
         updateCustomers(function(response) {
@@ -336,7 +340,7 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
     function updateCustomers(callback) {
         Contact.update({ _id: req.body._id }, req.body).then((data) => {
             user_activity.userActivityLogs(req, data);
-            res.json({ status: 1, message: "customer details updated", data: data })
+            callback(data)
         }, (err) => {
             res.status(400).json({ error: 1, message: "error occured", err: err })
         })
@@ -344,12 +348,23 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
-    Contact.remove({ _id: req.body._id }).then((data) => {
-        res.json({ status: 1, message: "customer deleted", data: data })
-    }, (err) => {
-        user_activity.userActivityLogs(req, data);
-        res.status(400).json({ error: 1, message: "error occured", err: err })
-    })
+    if (req.body.infusion_id) {
+        infusion_service.deleteContact(req.body).then((infusion_data) => {
+            Contact.remove({ _id: req.body._id }).then((data) => {
+                res.json({ status: 1, message: "customer deleted", data: data })
+            }, (err) => {
+                user_activity.userActivityLogs(req, data);
+                res.status(400).json({ error: 1, message: "error occured", err: err })
+            })
+        })
+    } else {
+        Contact.remove({ _id: req.body._id }).then((data) => {
+            res.json({ status: 1, message: "customer deleted", data: data })
+        }, (err) => {
+            user_activity.userActivityLogs(req, data);
+            res.status(400).json({ error: 1, message: "error occured", err: err })
+        })
+    }
 })
 
 router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {

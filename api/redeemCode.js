@@ -58,10 +58,21 @@ router.put('/updateRedeemCode', auth.requiresAdmin, function(req, res) {
                 if (req.body.type == "Universal" && req.body._id != data._id) {
                     res.status(400).json({ error: 1, message: "only one universal code is allowed" });
                 } else {
-                    redeemCode.update({ _id: req.body._id }, req.body).then((data) => {
-                        res.json({ status: 1, message: "redeem code updated", data: data })
-                    }, (err) => {
-                        res.status(400).json({ error: 1, message: "error occured", err: err })
+                    redeemCode.findOne({ _id: req.body._id }).then((response) => {
+                        if (response.type == "Universal") {
+                            req.body.type = "Universal";
+                            redeemCode.update({ _id: req.body._id }, req.body).then((data) => {
+                                res.json({ status: 1, message: "redeem code updated", data: data })
+                            }, (err) => {
+                                res.status(400).json({ error: 1, message: "error occured", err: err })
+                            })
+                        } else {
+                            redeemCode.update({ _id: req.body._id }, req.body).then((data) => {
+                                res.json({ status: 1, message: "redeem code updated", data: data })
+                            }, (err) => {
+                                res.status(400).json({ error: 1, message: "error occured", err: err })
+                            })
+                        }
                     })
                 }
             }
