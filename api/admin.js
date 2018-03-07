@@ -340,7 +340,7 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
     function updateCustomers(callback) {
         Contact.update({ _id: req.body._id }, req.body).then((data) => {
             user_activity.userActivityLogs(req, data);
-            res.json({ status: 1, message: "customer details updated", data: data })
+            callback(data)
         }, (err) => {
             res.status(400).json({ error: 1, message: "error occured", err: err })
         })
@@ -348,12 +348,23 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
-    Contact.remove({ _id: req.body._id }).then((data) => {
-        res.json({ status: 1, message: "customer deleted", data: data })
-    }, (err) => {
-        user_activity.userActivityLogs(req, data);
-        res.status(400).json({ error: 1, message: "error occured", err: err })
-    })
+    if (req.body.infusion_id) {
+        infusion_service.deleteContact(req.body).then((infusion_data) => {
+            Contact.remove({ _id: req.body._id }).then((data) => {
+                res.json({ status: 1, message: "customer deleted", data: data })
+            }, (err) => {
+                user_activity.userActivityLogs(req, data);
+                res.status(400).json({ error: 1, message: "error occured", err: err })
+            })
+        })
+    } else {
+        Contact.remove({ _id: req.body._id }).then((data) => {
+            res.json({ status: 1, message: "customer deleted", data: data })
+        }, (err) => {
+            user_activity.userActivityLogs(req, data);
+            res.status(400).json({ error: 1, message: "error occured", err: err })
+        })
+    }
 })
 
 router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {
