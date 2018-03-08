@@ -40,7 +40,7 @@ router.post('/AddRedeemCode', auth.requiresAdmin, function(req, res) {
 })
 
 router.get('/getAllRedeemCode', auth.requiresAdmin, function(req, res) {
-    redeemCode.find({}).then((data) => {
+    redeemCode.find({}).sort({ created_at: -1 }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })

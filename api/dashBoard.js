@@ -5,7 +5,7 @@ var Contact = require('../models/contact');
 var auth = require("../middleware/auth");
 
 router.get('/dashBoardAllCustomers', auth.requiresAdmin, function(req, res) {
-    Contact.find({}).then((data) => {
+    Contact.find({}).sort({ created_at: -1 }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -13,7 +13,7 @@ router.get('/dashBoardAllCustomers', auth.requiresAdmin, function(req, res) {
 })
 
 router.post('/redemption_data', auth.requiresAdmin, function(req, res) {
-    Contact.find({ reddeemed_date: { $gte: req.body.start_date, $lt: req.body.end_date, }, CodeRedeemFlag: true }, { "name": 1, "lastName": 1, "reddeemed_date": 1 }).then((data) => {
+    Contact.find({ reddeemed_date: { $gte: req.body.start_date, $lt: req.body.end_date, }, CodeRedeemFlag: true }, { "name": 1, "lastName": 1, "reddeemed_date": 1 }).sort({ created_at: -1 }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
