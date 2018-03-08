@@ -37,7 +37,7 @@ router.post('/Adminlogin', function(req, res) {
                 })
                 res.json({ status: 1, token: token, data: data });
             } else {
-                res.status(400).json({ message: "invalid username or password" });
+                res.status(400).json({ error: 1, message: "invalid username or password" });
             }
         })
     }
@@ -76,7 +76,7 @@ router.post('/addAdminStaff', auth.requiresAdmin, function(req, res) {
 })
 
 router.get('/getAllAdminStaff', auth.requiresAdmin, function(req, res) {
-    Admin.find({}).then((data) => {
+    Admin.find({}).sort({ created_at: -1 }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -135,35 +135,21 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
     var occupation = req.body.occupation;
 
     //null validate
-    if (name == null || name == '') {
-        res.status(400).json({ code: errorCode.signup.EMPTYNAME });
-    } else if (email == null) {
+    if (email == null || email == '') {
         res.status(400).json({ code: errorCode.signup.EMPTYEMAIL });
-    } else if (birthday == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYBIRTHDAY });
-    } else if (zipcode == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYZIPCODE });
-    } else if (gender == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYGENDER });
-    } else if (marital == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYMARITAL });
-    } else if (kids == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYKIDS });
-    } else if (password == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYPASS });
-    } else if (source == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYSOURCE });
-    } else if (type == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYTYPE });
-    } else if (interests == null) {
-        res.status(400).json({ code: errorCode.signup.EMPTYINTEREST });
     } else {
         //remove trim
-        name = name.trim();
         email = email.trim();
-        birthday = birthday.trim();
-        zipcode = zipcode.trim();
-        if (phone) {
+        if (name != null || name != '') {
+            name = name.trim();
+        }
+        if (birthday != null || birthday != '') {
+            birthday = birthday.trim();
+        }
+        if (zipcode != null || zipcode != '') {
+            zipcode = zipcode.trim();
+        }
+        if (phone != null || phone != '') {
             phone = phone.trim();
         }
 
@@ -174,19 +160,19 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
 
         if (!reg.test(email)) {
             res.status(400).json({ code: errorCode.signup.INVALIDEMAIL });
-        } else if (isNaN((new Date(birthday)).getTime())) {
+        } else if (birthday != null && birthday != '' && isNaN((new Date(birthday)).getTime())) {
             res.status(400).json({ code: errorCode.signup.INVALIDBIRTHDAY });
-        } else if (!regZip.test(zipcode)) {
+        } else if (zipcode != null && zipcode != '' && !regZip.test(zipcode)) {
             res.status(400).json({ code: errorCode.signup.INVALIDZIPCODE });
-        } else if (gender != '0' && gender != '1') {
+        } else if (gender != null && gender != '' && gender != '0' && gender != '1') {
             res.status(400).json({ code: errorCode.signup.INVALIDGENDER });
-        } else if (marital != '0' && marital != '1') {
+        } else if (marital != null && marital != '' && marital != '0' && marital != '1') {
             res.status(400).json({ code: errorCode.signup.INVALIDMARITAL });
-        } else if (kids != '0' && kids != '1') {
+        } else if (kids != null && kids != '' && kids != '0' && kids != '1') {
             res.status(400).json({ code: errorCode.signup.INVALIDKIDS });
-        } else if (source != '0' && source != '1' && source != '2' && source != '3') {
+        } else if (source != null && source != '' && source != '0' && source != '1' && source != '2' && source != '3') {
             res.status(400).json({ code: errorCode.signup.INVALIDSOURCE });
-        } else if (type != '0' && type != '1') {
+        } else if (type != null && type != '' && type != '0' && type != '1') {
             res.status(400).json({ code: errorCode.signup.INVALIDTYPE });
         } else {
             //existing email or phone validate
@@ -218,34 +204,69 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                 }
 
                 function customerObject(callback) {
-                    contact.name = name;
-                    contact.lastName = lastName;
                     contact.email = email;
-                    contact.sms_option = sms_option;
-                    contact.app_installed = app_installed;
-                    contact.birthday = birthday;
-                    contact.zipcode = zipcode;
-                    contact.gender = gender;
-                    contact.marital = marital;
-                    contact.kids = kids;
-                    contact.password = md5(password);
+                    if (name) {
+                        contact.name = name;
+                    }
+                    if (lastName) {
+                        contact.lastName = lastName;
+                    }
+                    if (sms_option) {
+                        contact.sms_option = sms_option;
+                    }
+                    if (app_installed) {
+                        contact.app_installed = app_installed;
+                    }
+                    if (birthday) {
+                        contact.birthday = birthday;
+                    }
+                    if (zipcode) {
+                        contact.zipcode = zipcode;
+                    }
+                    if (gender) {
+                        contact.gender = gender;
+                    }
+                    if (marital) {
+                        contact.marital = marital;
+                    }
+                    if (kids) {
+                        contact.kids = kids;
+                    }
+                    if (password) {
+                        contact.password = md5(password);
+                    }
+                    if (source) {
+                        contact.contact_source = source;
+                    }
+                    if (type) {
+                        contact.type = type;
+                    }
+                    if (city) {
+                        contact.city = city;
+                    }
+                    if (state) {
+                        contact.state = state;
+                    }
+                    if (address1) {
+                        contact.address1 = address1;
+                    }
+                    if (address2) {
+                        contact.address2 = address2;
+                    }
+                    if (occupation) {
+                        contact.occupation = occupation;
+                    }
+                    if (anniversary) {
+                        contact.anniversary = anniversary;
+                    }
                     contact.created_at = new Date();
                     contact.updated_at = new Date();
-                    contact.contact_source = source;
-                    contact.type = type;
-                    contact.city = city;
-                    contact.state = state;
-                    contact.type = type;
-                    contact.address1 = address1;
-                    contact.address2 = address2;
-                    contact.occupation = occupation;
-                    contact.anniversary = anniversary;
                     contact.createdBy = req.user.email;
                     contact.modifiedBy = req.user.email;
                     if (phone) {
                         contact.phone = phone;
                     }
-                    if (interests != '') {
+                    if (interests != '' && interests != null) {
                         var interestDATA = [];
                         var interestsItems = interests.split(":");
                         for (var i = 0; i < interestsItems.length; i++) {
@@ -267,7 +288,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                         if (interests.length > 0) {
                             for (var i = 0; i < interests.length; i++) {
                                 var i_id = interests[i]._id;
-                                if (req.body.interests.indexOf(i_id) != -1) {
+                                if (req.body.interestes != '' && req.body.interests.indexOf(i_id) != -1) {
                                     interestsTextArrayForInfusion.push(interests[i].name)
                                 }
                             }
@@ -368,7 +389,7 @@ router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {
-    Contact.find({}).skip(req.params.page * 20).limit(20).then((data) => {
+    Contact.find({}).skip(req.params.page * 20).limit(20).sort({ created_at: -1 }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
