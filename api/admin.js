@@ -187,6 +187,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                         redeemCode.findOne({ redeem_code: redeem_code, active_status: "Active" }).then((data) => {
                             if (data) {
                                 contact.CodeRedeemFlag = true;
+                                req.body.CodeRedeemFlag = true;
                                 contact.redeemCode = redeem_code;
                                 contact.reddeemed_date = new Date();
                                 customerObject(function(response) {
@@ -288,7 +289,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                         if (interests.length > 0) {
                             for (var i = 0; i < interests.length; i++) {
                                 var i_id = interests[i]._id;
-                                if (req.body.interestes != '' && req.body.interestes != null && req.body.interests.indexOf(i_id) != -1) {
+                                if (req.body.interests != '' && req.body.interests != null && req.body.interests.indexOf(i_id) != -1) {
                                     interestsTextArrayForInfusion.push(interests[i].name)
                                 }
                             }
@@ -336,7 +337,7 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
             if (interests.length > 0) {
                 for (var i = 0; i < interests.length; i++) {
                     var i_id = interests[i]._id;
-                    if (req.body.interestes != '' && req.body.interestes != null && interestForInfusion.indexOf(i_id) != -1) {
+                    if (req.body.interests != '' && req.body.interests != null && interestForInfusion.indexOf(i_id) != -1) {
                         interestsTextArrayForInfusion.push(interests[i].name)
                     }
                 }

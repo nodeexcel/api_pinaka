@@ -3,5 +3,8 @@
     "adminPassword": "123",
     "adminEmail": "123@gmail.com",
     "role": "Admin",
-    "textiAuthorization": "Basic NWFhMjM1M2MzZmMwMzo0MDg3MGQ3MTNkMzRlNzM5MTdiOTM4NzY1NzUxOWRkMGJjN2UxOTcy"
+    "textiAuthorization": "Basic NWFhMjM1M2MzZmMwMzo0MDg3MGQ3MTNkMzRlNzM5MTdiOTM4NzY1NzUxOWRkMGJjN2UxOTcy",
+    "customFieldAppInstalledId": "18",
+    "customFieldInterestsId": "22",
+    "customFieldRedeemCodeFlagId": "24"
 }
