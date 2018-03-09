@@ -15,7 +15,6 @@ router.post('/HookAddCustomer', function(req, res) {
             method: "get",
         }
         request(requestObj, function(err, exist_check) {
-            console.log(exist_check.body)
             var obj = JSON.parse(exist_check.body);
 
             var contact = new Contact;
@@ -84,7 +83,7 @@ router.post('/HookAddCustomer', function(req, res) {
                                 res.status(400).json({ error: 1, message: "error occured", err: err })
                             } else {
                                 if (response.statusCode == 200) {
-                                    console.log("message sent to user with redeem code")
+                                    console.log("message sent to user with redeem code", redeem_code)
                                     redeemCode.update({ active_status: "Active", type: "General" }, { active_status: "InActive" }).then((resp) => {
                                         redeemCode.create(redeemCodeData).then((data) => {
                                             contact.save(function(err, data) {

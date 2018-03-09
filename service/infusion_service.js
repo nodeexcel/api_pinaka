@@ -1,12 +1,10 @@
 var request = require('request')
 var infusion_session = require("../models/infusion_session")
+var config = require('../config')
 
 module.exports = {
     createContact(body, interestsTextArrayForInfusion) {
         // infusion custom fields id get it from here - https://developer.infusionsoft.com/docs/rest/#!/Contact/listCustomFieldsUsingGET
-        // redeemCode = 20
-        // App Installed = 18
-        // interests = 22
 
         return new Promise((resolve, reject) => {
             infusion_session.findOne().then((token) => {
@@ -27,14 +25,14 @@ module.exports = {
                             "given_name": body.name,
                             "family_name": body.lastName,
                             "custom_fields": [{
-                                "content": body.redeemCode,
-                                "id": 20
-                            }, {
                                 "content": body.app_installed,
-                                "id": 18
+                                "id": config.customFieldAppInstalledId
                             }, {
                                 "content": interestsTextArrayForInfusion,
-                                "id": 22
+                                "id": config.customFieldInterestsId
+                            }, {
+                                "content": body.CodeRedeemFlag,
+                                "id": config.customFieldRedeemCodeFlagId
                             }]
                         };
                         var CreateequestObj = {
@@ -69,14 +67,14 @@ module.exports = {
                     "given_name": body.name,
                     "family_name": body.lastName,
                     "custom_fields": [{
-                        "content": body.redeemCode,
-                        "id": 20
-                    }, {
                         "content": body.app_installed,
-                        "id": 18
+                        "id": config.customFieldAppInstalledId
                     }, {
                         "content": interestsTextArrayForInfusion,
-                        "id": 22
+                        "id": config.customFieldInterestsId
+                    }, {
+                        "content": body.CodeRedeemFlag,
+                        "id": config.customFieldRedeemCodeFlagId
                     }]
                 };
                 var updateRequestObj = {

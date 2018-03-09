@@ -187,6 +187,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                         redeemCode.findOne({ redeem_code: redeem_code, active_status: "Active" }).then((data) => {
                             if (data) {
                                 contact.CodeRedeemFlag = true;
+                                req.body.CodeRedeemFlag = true;
                                 contact.redeemCode = redeem_code;
                                 contact.reddeemed_date = new Date();
                                 customerObject(function(response) {
