@@ -17,7 +17,7 @@ module.exports = {
                 request(requestObj, function(err, exist_check) {
                     var obj = JSON.parse(exist_check.body);
                     if (obj.count != 0) {
-                        resolve({ error: 1, message: "contact already exist on infusionsoft" })
+                        resolve({ error: 1, message: "email already exist on infusionsoft" })
                     } else {
                         var data = {
                             "email_addresses": [{
@@ -129,7 +129,7 @@ module.exports = {
                     method: "POST",
                     uri: url,
                     headers: {
-                        'Authorization': 'Basic ' + encode,
+                        'Authorization': 'Basic NWFhMjM1M2MzZmMwMzo0MDg3MGQ3MTNkMzRlNzM5MTdiOTM4NzY1NzUxOWRkMGJjN2UxOTcy',
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     json: true,

@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 var fileupload = require('express-fileupload');
 var cors = require('cors');
 var Admin = require('./service/admin');
-var infusion = require('./service/infusion')
+var infusionHooks = require('./api/infusionHooks')
 
 
 var user = require('./api/user');
@@ -50,7 +50,7 @@ app.use('/api/saved', saved);
 app.use('/api/payment', payment);
 app.use('/api/admin', admin);
 app.use('/api/RedeemCode', redeemCode);
-app.use('/api/infusion', infusion);
+app.use('/api/infusionHooks', infusionHooks);
 app.use('/api/dashBoard', dashBoard);
 
 app.get('/', function(req, res) {
