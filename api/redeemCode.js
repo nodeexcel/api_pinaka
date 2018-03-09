@@ -25,8 +25,13 @@ router.post('/AddRedeemCode', auth.requiresAdmin, function(req, res) {
         } else {
             redeemCode.findOne({ redeem_code: req.body.redeem_code }).then((data) => {
                 if (!data) {
-                    redeemCode.create(req.body).then((data) => {
-                        res.json({ status: 1, message: "redeem code added", data: data })
+                    redeemCode.update({ active_status: "Active", type: "General" }, { active_status: "InActive" }).then((resp) => {
+                        redeemCode.create(req.body).then((data) => {
+                            // console.log(resp)
+                            res.json({ status: 1, message: "redeem code added", data: data })
+                        }, (err) => {
+                            res.status(400).json({ error: 1, message: "error occured", err: err })
+                        })
                     }, (err) => {
                         res.status(400).json({ error: 1, message: "error occured", err: err })
                     })
