@@ -30,6 +30,7 @@ router.post('/HookAddCustomer', function(req, res) {
             if (obj.phone_numbers.length != 0) {
                 contact.phone = obj.phone_numbers[0].number.replace(/[^A-Z0-9]/ig, "");
             }
+            contact.infusion_id = req.body.object_keys[0].id;
             Contact.findOne({ phone: contact.phone }).then((data) => {
                 if (!data) {
                     var requestInterestsArray = [];
