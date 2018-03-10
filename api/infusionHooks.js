@@ -52,6 +52,7 @@ router.post('/HookAddCustomer', function(req, res) {
                             }
                         }
                         contact.interests = interestsTextArrayForInfusion;
+                        contact.Infusion_synced_date = new Date();
 
                         let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
                         var redeem_code = '';
@@ -163,6 +164,7 @@ router.post('/HookUpdateCustomer', function(req, res) {
                         }
 
                         contact.interests = interestsTextArrayForInfusion;
+                        contact.Infusion_synced_date = new Date();
                         Contact.update({ infusion_id: req.body.object_keys[0].id }, contact).then((data) => {
                             res.json(data)
                             console.log("data updated")

@@ -262,6 +262,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     }
                     contact.created_at = new Date();
                     contact.updated_at = new Date();
+                    contact.Infusion_synced_date = new Date();
                     contact.createdBy = req.user.email;
                     contact.modifiedBy = req.user.email;
                     if (phone) {
@@ -332,6 +333,7 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
         req.body.interests = interestDATA;
     }
     if (req.body.infusion_id) {
+        req.body.Infusion_synced_date = new Date();
         Interest.find({}, function(err, interests) {
             var interestsTextArrayForInfusion = [];
             if (interests.length > 0) {
