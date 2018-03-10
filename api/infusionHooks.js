@@ -18,6 +18,8 @@ router.post('/HookAddCustomer', function(req, res) {
             var obj = JSON.parse(exist_check.body);
 
             var contact = new Contact;
+            contact.created_at = new Date();
+            contact.updated_at = new Date();
             if (obj.email_addresses[0].email) {
                 contact.email = obj.email_addresses[0].email
             }
@@ -125,6 +127,7 @@ router.post('/HookUpdateCustomer', function(req, res) {
             var obj = JSON.parse(exist_check.body);
 
             var contact = new Object();
+            contact.updated_at = new Date();
             if (obj.given_name) {
                 contact.name = obj.given_name;
             }
@@ -167,7 +170,7 @@ router.post('/HookUpdateCustomer', function(req, res) {
                         contact.Infusion_synced_date = new Date();
                         Contact.update({ infusion_id: req.body.object_keys[0].id }, contact).then((data) => {
                             res.json(data)
-                            console.log("data updated")
+                            console.log("data updated", data)
                         }, (err) => {
                             res.status(400).json({ error: 1, message: "error occured", err: err })
                         })
