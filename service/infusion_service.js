@@ -8,6 +8,7 @@ module.exports = {
 
         return new Promise((resolve, reject) => {
             infusion_session.findOne().then((token) => {
+
                 var data = {
                     "email_addresses": [{
                         "email": body.email,
@@ -41,13 +42,11 @@ module.exports = {
                         resolve(response)
                     }
                 })
-
             })
         })
-    })
-},
+    },
 
-updateContact(body, interestsTextArrayForInfusion) {
+    updateContact(body, interestsTextArrayForInfusion) {
         return new Promise((resolve, reject) => {
             infusion_session.findOne().then((token) => {
                 var data = {
