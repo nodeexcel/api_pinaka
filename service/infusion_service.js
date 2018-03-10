@@ -33,14 +33,7 @@ module.exports = {
                     json: data
                 }
                 request(CreateequestObj, function(err, response) {
-                    if (response.statusCode == 401) {
-                        console.log('Received a 401 response!  Trying to refresh tokens.')
-                        module.exports.checkForUnauthorized(body).then((infusion_data) => {
-                            module.exports.createContact(body, interestsTextArrayForInfusion)
-                        })
-                    } else {
-                        resolve(response)
-                    }
+                    resolve(response)
                 })
             })
         })
@@ -73,14 +66,7 @@ module.exports = {
                     json: data
                 }
                 request(updateRequestObj, function(err, response) {
-                    if (response.statusCode == 401) {
-                        console.log('Received a 401 response!  Trying to refresh tokens.')
-                        module.exports.checkForUnauthorized(body).then((infusion_data) => {
-                            module.exports.updateContact(body, interestsTextArrayForInfusion)
-                        })
-                    } else {
-                        resolve(response)
-                    }
+                    resolve(response)
                 })
             })
         })
@@ -94,20 +80,13 @@ module.exports = {
                     method: "delete",
                 }
                 request(updateRequestObj, function(err, response) {
-                    if (response.statusCode == 401) {
-                        console.log('Received a 401 response!  Trying to refresh tokens.')
-                        module.exports.checkForUnauthorized(body).then((infusion_data) => {
-                            module.exports.deleteContact(body)
-                        })
-                    } else {
-                        resolve(response)
-                    }
+                    resolve(response)
                 })
             })
         })
     },
 
-    checkForUnauthorized(body) {
+    checkForUnauthorized() {
         return new Promise(function(resolve, reject) {
             infusion_session.findOne().then((token) => {
                 var url = "https://api.infusionsoft.com/token"
@@ -120,7 +99,7 @@ module.exports = {
                     method: "POST",
                     uri: url,
                     headers: {
-                        'Authorization': 'Basic NWFhMjM1M2MzZmMwMzo0MDg3MGQ3MTNkMzRlNzM5MTdiOTM4NzY1NzUxOWRkMGJjN2UxOTcy',
+                        'Authorization': 'Basic ' + encode,
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     json: true,
@@ -128,6 +107,7 @@ module.exports = {
                 }
                 request(requestObj, function(err, refresh_token) {
                     infusion_session.update({ _id: token._id }, refresh_token.body).then((data) => {
+                        console.log("access token regenerated for infusion")
                         resolve(refresh_token)
                     })
                 })

@@ -8,7 +8,7 @@ var fileupload = require('express-fileupload');
 var cors = require('cors');
 var Admin = require('./service/admin');
 var infusionHooks = require('./api/infusionHooks')
-
+var cron = require('./cron/cron.js')
 
 var user = require('./api/user');
 var interest = require('./api/interest');
@@ -53,6 +53,7 @@ app.use('/api/RedeemCode', redeemCode);
 app.use('/api/infusionHooks', infusionHooks);
 app.use('/api/dashBoard', dashBoard);
 
+
 app.get('/', function(req, res) {
     return res.json({ 'result': 'server started' });
 })
@@ -87,7 +88,7 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
-
+cron.updateAccessToken();
 // error handlers
 
 // development error handler
