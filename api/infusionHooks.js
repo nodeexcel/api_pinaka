@@ -127,7 +127,6 @@ router.post('/HookUpdateCustomer', function(req, res) {
             var obj = JSON.parse(exist_check.body);
 
             var contact = new Object();
-            contact.updated_at = new Date();
             if (obj.given_name) {
                 contact.name = obj.given_name;
             }
@@ -165,9 +164,9 @@ router.post('/HookUpdateCustomer', function(req, res) {
                                 }
                             }
                         }
-
-                        contact.interests = interestsTextArrayForInfusion;
+                        contact.updated_at = new Date();
                         contact.Infusion_synced_date = new Date();
+                        contact.interests = interestsTextArrayForInfusion;
                         Contact.update({ infusion_id: req.body.object_keys[0].id }, contact).then((data) => {
                             res.json(data)
                             console.log("data updated", data)
