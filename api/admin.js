@@ -368,7 +368,7 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
                             res.json({ status: 1, message: "customer details updated", data: response })
                         })
                     } else {
-                        res.json(infusion_data)
+                        res.json({ error: 1, message: "something went wrong on infusiosoft", data: infusion_data })
                     }
                 })
             }
