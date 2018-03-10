@@ -111,6 +111,7 @@ router.post('/searchAdminStaff', auth.requiresAdmin, function(req, res) {
 })
 
 router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
+    console.log("=================", req.body)
     var name = req.body.name;
     var lastName = req.body.lastName;
     var email = req.body.email;
