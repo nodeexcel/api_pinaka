@@ -133,6 +133,9 @@ router.post('/HookUpdateCustomer', function(req, res) {
             if (obj.family_name) {
                 contact.lastName = obj.family_name;
             }
+            if (obj.birthday) {
+                contact.birthday = obj.birthday;
+            }
             Contact.find({ infusion_id: req.body.object_keys[0].id }).then((data) => {
                 if (data) {
                     var requestInterestsArray = [];

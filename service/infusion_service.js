@@ -8,12 +8,17 @@ module.exports = {
 
         return new Promise((resolve, reject) => {
             infusion_session.findOne().then((token) => {
-
+                body.birthday = new Date(body.birthday)
                 var data = {
                     "email_addresses": [{
                         "email": body.email,
                         "field": "EMAIL1"
                     }],
+                    "phone_numbers": [{
+                        "number": body.phone,
+                        "field": "PHONE1"
+                    }],
+                    "birthday": body.birthday,
                     "given_name": body.name,
                     "family_name": body.lastName,
                     "custom_fields": [{
