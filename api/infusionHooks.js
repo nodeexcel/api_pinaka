@@ -164,9 +164,9 @@ router.post('/HookUpdateCustomer', function(req, res) {
                                 }
                             }
                         }
+                        contact.interests = interestsTextArrayForInfusion;
                         contact.updated_at = new Date();
                         contact.Infusion_synced_date = new Date();
-                        contact.interests = interestsTextArrayForInfusion;
                         Contact.update({ infusion_id: req.body.object_keys[0].id }, contact).then((data) => {
                             res.json(data)
                             console.log("data updated", data)
