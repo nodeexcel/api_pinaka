@@ -8,48 +8,38 @@ module.exports = {
 
         return new Promise((resolve, reject) => {
             infusion_session.findOne().then((token) => {
-                var requestObj = {
-                    url: `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${body.email}&access_token=${token.access_token}`,
-                    method: "get",
+
+                var data = {
+                    "email_addresses": [{
+                        "email": body.email,
+                        "field": "EMAIL1"
+                    }],
+                    "given_name": body.name,
+                    "family_name": body.lastName,
+                    "custom_fields": [{
+                        "content": body.app_installed,
+                        "id": config.customFieldAppInstalledId
+                    }, {
+                        "content": interestsTextArrayForInfusion,
+                        "id": config.customFieldInterestsId
+                    }, {
+                        "content": body.CodeRedeemFlag,
+                        "id": config.customFieldRedeemCodeFlagId
+                    }]
+                };
+                var CreateequestObj = {
+                    url: `https://api.infusionsoft.com/crm/rest/v1/contacts?access_token=${token.access_token}`,
+                    method: "post",
+                    json: data
                 }
-                request(requestObj, function(err, exist_check) {
-                    var obj = JSON.parse(exist_check.body);
-                    if (obj.count != 0) {
-                        resolve({ error: 1, message: "email already exist on infusionsoft" })
-                    } else {
-                        var data = {
-                            "email_addresses": [{
-                                "email": body.email,
-                                "field": "EMAIL1"
-                            }],
-                            "given_name": body.name,
-                            "family_name": body.lastName,
-                            "custom_fields": [{
-                                "content": body.app_installed,
-                                "id": config.customFieldAppInstalledId
-                            }, {
-                                "content": interestsTextArrayForInfusion,
-                                "id": config.customFieldInterestsId
-                            }, {
-                                "content": body.CodeRedeemFlag,
-                                "id": config.customFieldRedeemCodeFlagId
-                            }]
-                        };
-                        var CreateequestObj = {
-                            url: `https://api.infusionsoft.com/crm/rest/v1/contacts?access_token=${token.access_token}`,
-                            method: "post",
-                            json: data
-                        }
-                        request(CreateequestObj, function(err, response) {
-                            if (response.statusCode == 401) {
-                                console.log('Received a 401 response!  Trying to refresh tokens.')
-                                module.exports.checkForUnauthorized(body).then((infusion_data) => {
-                                    module.exports.createContact(body, interestsTextArrayForInfusion)
-                                })
-                            } else {
-                                resolve(response)
-                            }
+                request(CreateequestObj, function(err, response) {
+                    if (response.statusCode == 401) {
+                        console.log('Received a 401 response!  Trying to refresh tokens.')
+                        module.exports.checkForUnauthorized(body).then((infusion_data) => {
+                            module.exports.createContact(body, interestsTextArrayForInfusion)
                         })
+                    } else {
+                        resolve(response)
                     }
                 })
             })
@@ -104,8 +94,11 @@ module.exports = {
                     method: "delete",
                 }
                 request(updateRequestObj, function(err, response) {
-                    if (response) {
-                        resolve(response)
+                    if (response.statusCode == 401) {
+                        console.log('Received a 401 response!  Trying to refresh tokens.')
+                        module.exports.checkForUnauthorized(body).then((infusion_data) => {
+                            module.exports.deleteContact(body)
+                        })
                     } else {
                         resolve(response)
                     }
