@@ -136,6 +136,22 @@ router.post('/HookUpdateCustomer', function(req, res) {
             Contact.find({ infusion_id: req.body.object_keys[0].id }).then((data) => {
                 if (data) {
                     var requestInterestsArray = [];
+                    var CodeRedeemFlag = '';
+                    var app_installed = '';
+                    for (var k in obj.custom_fields) {
+                        if (obj.custom_fields[k].id == 22 && obj.custom_fields[k].content) {
+                            requestInterestsArray = obj.custom_fields[k].content.split(",");
+                        }
+                        if (obj.custom_fields[k].id == 24 && obj.custom_fields[k].content) {
+                            CodeRedeemFlag = obj.custom_fields[k].content;
+                            contact.CodeRedeemFlag = CodeRedeemFlag;
+                        }
+                        if (obj.custom_fields[k].id == 18 && obj.custom_fields[k].content) {
+                            app_installed = obj.custom_fields[k].content;
+                            contact.app_installed = app_installed;
+                        }
+                    }
+
                     Interest.find({}, function(err, interests) {
                         var interestsTextArrayForInfusion = [];
                         if (requestInterestsArray.length > 0 && interests.length > 0) {
@@ -148,26 +164,10 @@ router.post('/HookUpdateCustomer', function(req, res) {
                                 }
                             }
                         }
-                        var CodeRedeemFlag = '';
-                        var app_installed = '';
-                        for (var k in obj.custom_fields) {
-                            if (obj.custom_fields[k].id == 22 && obj.custom_fields[k].content) {
-                                requestInterestsArray = obj.custom_fields[k].content.split(",");
-                            }
-                            if (obj.custom_fields[k].id == 24 && obj.custom_fields[k].content) {
-                                CodeRedeemFlag = obj.custom_fields[k].content;
-                                contact.CodeRedeemFlag = CodeRedeemFlag;
-                            }
-                            if (obj.custom_fields[k].id == 18 && obj.custom_fields[k].content) {
-                                app_installed = obj.custom_fields[k].content;
-                                contact.app_installed = app_installed;
-                            }
-                        }
-
-
+                        contact.interests = interestsTextArrayForInfusion;
+                        console.log(contact.interests, "interests")
                         contact.updated_at = new Date();
                         contact.Infusion_synced_date = new Date();
-                        contact.interests = interestsTextArrayForInfusion;
                         Contact.update({ infusion_id: req.body.object_keys[0].id }, contact).then((data) => {
                             res.json(data)
                             console.log("data updated", data)
