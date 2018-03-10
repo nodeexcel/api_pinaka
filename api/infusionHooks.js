@@ -120,5 +120,9 @@ router.post('/HookAddCustomer', function(req, res) {
     })
 })
 
+router.post('/HookUpdateCustomer', function(req, res) {
+    console.log(req, "===================================================")
+})
+
 
 module.exports = router;
