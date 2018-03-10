@@ -319,6 +319,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
 
 router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
     var interestForInfusion = req.body.interests;
+    req.body.updated_at = new Date();
     req.body.modifiedBy = req.user.email;
     if (req.body.interests) {
         var interestDATA = [];
