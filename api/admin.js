@@ -111,7 +111,6 @@ router.post('/searchAdminStaff', auth.requiresAdmin, function(req, res) {
 })
 
 router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
-    console.log("=================", req.body)
     var name = req.body.name;
     var lastName = req.body.lastName;
     var email = req.body.email;
@@ -134,6 +133,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
     var redeem_code = req.body.redeemCode;
     var anniversary = req.body.anniversary;
     var occupation = req.body.occupation;
+    var age_group = req.body.age_group;
 
     //null validate
     if (email == null || email == '') {
@@ -260,6 +260,9 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     }
                     if (anniversary) {
                         contact.anniversary = anniversary;
+                    }
+                    if (age_group) {
+                        contact.age_group = age_group;
                     }
                     contact.created_at = new Date();
                     contact.updated_at = new Date();

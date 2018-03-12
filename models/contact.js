@@ -33,7 +33,8 @@ var ContactSchema = new Schema({
     created_at: Date,
     updated_at: Date,
     token: String,
-    infusion_id: String
+    infusion_id: String,
+    age_group: String
 });
 
 module.exports = mongoose.model('contacts', ContactSchema);
