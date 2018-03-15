@@ -73,7 +73,10 @@ mongodb.connect(mDBConfig.pub_url, { useMongoClient: true }).then(function() {
                 var newInterest = new Interests;
                 newInterest.name = value.name;
                 newInterest.description = value.description;
+                // newInterest.order = value.order;
                 newInterest.save();
+            } else {
+                Interests.update({ _id: result._id, order: { "$exists": false } }, { order: value.order }).then((data) => {})
             }
         })
     });
