@@ -66,18 +66,17 @@ var InterestValues = require('./constants/interests');
 mongodb.connect(mDBConfig.pub_url, { useMongoClient: true }).then(function() {
     console.log("mongodb is connected...");
     Admin.defaultAdmin();
-    Interests.find({}, function(err, interests) {
-        if (interests.length == 0) {
-            //init interests collections
-            InterestValues.map(function(value, index) {
+    //init interests collections
+    InterestValues.map(function(value, index) {
+        Interests.findOne({ name: value.name }, function(err, result) {
+            if (!result) {
                 var newInterest = new Interests;
                 newInterest.name = value.name;
                 newInterest.description = value.description;
                 newInterest.save();
-            });
-        }
+            }
+        })
     });
-
 }, function(err) {
 
 });

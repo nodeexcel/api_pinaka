@@ -7,5 +7,6 @@
     { name: 'Bowling', description: '' },
     { name: 'Food', description: '' },
     { name: 'Group event', description: '' },
-    { name: 'Adult party', description: ''}
+    { name: 'Adult party', description: '' },
+    { name: 'Virtual Reality', description: '' }
 ];
