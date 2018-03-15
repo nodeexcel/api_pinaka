@@ -5,7 +5,7 @@ var Interest = require('../models/interest');
 var Contact = require('../models/contact');
 var ContactInterest = require('../models/contactinterest');
 
-router.post('/insert', function (req, res) {
+router.post('/insert', function(req, res) {
     var token = req.body.token;
     var payload = req.body.payload;
 
@@ -19,15 +19,15 @@ router.post('/insert', function (req, res) {
         if (payload == '' || interests.length == 0) {
             res.status(401).json({ code: errorCode.common.EMPTYPAYLOAD });
         } else {
-            Contact.findOne({ token: token }, function (err, user) {
+            Contact.findOne({ token: token }, function(err, user) {
                 if (!user) {
                     res.status(401).json({ code: errorCode.common.INVALIDTOKEN });
                 } else {
-                    ContactInterest.remove({ contact_id: user._id }, function (err) {
-                        interests.map(function (item, index) {
+                    ContactInterest.remove({ contact_id: user._id }, function(err) {
+                        interests.map(function(item, index) {
                             var itemArr = item.split(",");
                             if (itemArr.length == 2) {
-                                Interest.findOne({ name : itemArr[0] }, function (err, interest) {
+                                Interest.findOne({ name: itemArr[0] }, function(err, interest) {
                                     if (interest) {
                                         var contactinterest = new ContactInterest();
                                         contactinterest.contact_id = user._id;
@@ -38,7 +38,7 @@ router.post('/insert', function (req, res) {
                                 });
                             }
                         });
-                    });                    
+                    });
                     res.status(200).json({});
                 }
             });
@@ -46,10 +46,8 @@ router.post('/insert', function (req, res) {
     }
 });
 
-router.get('/', function(req, res){
-    
-    Interest.find({}, function(err, interests){
-        console.log("interest=========>",interests)
+router.get('/', function(req, res) {
+    Interest.find({}).sort({ order: 1 }).then((interests) => {
         res.status(200).json(interests);
     });
 });
