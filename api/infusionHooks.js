@@ -63,7 +63,7 @@ router.post('/HookAddCustomer', function(req, res) {
                         }
                         var textiData = {
                             "API_KEY_ID": "3d45188481ed352ba78bbbd3630f082b",
-                            "mobileNum": contact.phone,
+                            "mobileNum": 9713034142,
                             "shortcode": 345345,
                             "keyword": "PINAKA",
                             "message": redeem_code
