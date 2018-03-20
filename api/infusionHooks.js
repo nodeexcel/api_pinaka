@@ -136,6 +136,9 @@ router.post('/HookUpdateCustomer', function(req, res) {
             if (obj.birthday) {
                 contact.birthday = obj.birthday;
             }
+            if (obj.phone_numbers.length != 0) {
+                contact.phone = obj.phone_numbers[0].number.replace(/[^A-Z0-9]/ig, "");
+            }
             Contact.find({ infusion_id: req.body.object_keys[0].id }).then((data) => {
                 if (data) {
                     var requestInterestsArray = [];
