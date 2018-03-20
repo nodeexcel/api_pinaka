@@ -446,7 +446,7 @@ router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.get('/getAllCustomer/:page', auth.requiresAdmin, function(req, res) {
-    Contact.find({}).skip(req.params.page * 20).limit(20).sort({ created_at: -1 }).then((data) => {
+    Contact.find({}).skip(req.params.page * 25).limit(25).sort({ created_at: -1 }).then((data) => {
         res.json({ status: 1, data: data })
     }, (err) => {
         res.status(400).json({ error: 1, message: "error occured", err: err })
