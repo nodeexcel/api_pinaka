@@ -311,7 +311,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                                     }
                                 });
                             } else {
-                                res.json({ error: 1, message: "can not add on infusionsoft", data: infusion_data })
+                                res.status(400).json({ error: 1, message: "can not add on infusionsoft", data: infusion_data })
                             }
                         })
                     });
@@ -322,93 +322,107 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
 })
 
 router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
-    var interestForInfusion = req.body.interests;
-    req.body.updated_at = new Date();
-    req.body.modifiedBy = req.user.email;
-    if (req.body.interests) {
-        var interestDATA = [];
-        var interestsItems = req.body.interests.split(":");
-        for (var i = 0; i < interestsItems.length; i++) {
-            var temp = interestsItems[i].split(",");
-            interestDATA.push({
-                id: temp[0],
-                level: temp[1]
-            });
-        }
-        req.body.interests = interestDATA;
-    }
-    if (req.body.infusion_id) {
-        req.body.Infusion_synced_date = new Date();
-        Interest.find({}, function(err, interests) {
-            var interestsTextArrayForInfusion = [];
-            if (interests.length > 0) {
-                for (var i = 0; i < interests.length; i++) {
-                    var i_id = interests[i]._id;
-                    if (req.body.interests != '' && req.body.interests != null && interestForInfusion.indexOf(i_id) != -1) {
-                        interestsTextArrayForInfusion.push(interests[i].name)
+    Contact.findOne({ email: req.body.email }).then((resp) => {
+        if (resp && resp._id != req.body._id) {
+            res.status(400).json({ error: 1, message: "email already exist" })
+        } else {
+            Contact.findOne({ phone: req.body.phone }).then((resp) => {
+                if (resp && resp._id != req.body._id) {
+                    res.status(400).json({ error: 1, message: "phone number already exist" })
+                } else {
+                    var interestForInfusion = req.body.interests;
+                    req.body.updated_at = new Date();
+                    req.body.modifiedBy = req.user.email;
+                    if (req.body.interests) {
+                        var interestDATA = [];
+                        var interestsItems = req.body.interests.split(":");
+                        for (var i = 0; i < interestsItems.length; i++) {
+                            var temp = interestsItems[i].split(",");
+                            interestDATA.push({
+                                id: temp[0],
+                                level: temp[1]
+                            });
+                        }
+                        req.body.interests = interestDATA;
                     }
-                }
-            }
-            if (req.body.redeemCode) {
-                redeemCode.findOne({ redeem_code: req.body.redeemCode, active_status: "Active" }).then((data) => {
-                    if (data) {
-                        req.body.CodeRedeemFlag = true;
-                        req.body.redeemCode = req.body.redeem_code;
-                        req.body.reddeemed_date = new Date();
-                        infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
-                            if (infusion_data.statusCode == 200) {
-                                updateCustomers(function(response) {
-                                    res.json({ status: 1, message: "customer details updated", data: response })
+                    if (req.body.infusion_id) {
+                        req.body.Infusion_synced_date = new Date();
+                        Interest.find({}, function(err, interests) {
+                            var interestsTextArrayForInfusion = [];
+                            if (interests.length > 0) {
+                                for (var i = 0; i < interests.length; i++) {
+                                    var i_id = interests[i]._id;
+                                    if (req.body.interests != '' && req.body.interests != null && interestForInfusion.indexOf(i_id) != -1) {
+                                        interestsTextArrayForInfusion.push(interests[i].name)
+                                    }
+                                }
+                            }
+
+                            if (req.body.redeemCode) {
+                                redeemCode.findOne({ redeem_code: req.body.redeemCode, active_status: "Active" }).then((data) => {
+                                    if (data) {
+
+                                        req.body.CodeRedeemFlag = true;
+                                        req.body.redeemCode = req.body.redeem_code;
+                                        req.body.reddeemed_date = new Date();
+                                        infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                                            if (infusion_data.statusCode == 200) {
+                                                updateCustomers(function(response) {
+                                                    res.json({ status: 1, message: "customer details updated", data: response })
+                                                })
+                                            } else {
+                                                res.json(infusion_data)
+                                            }
+                                        })
+                                    } else {
+                                        res.status(400).json({ error: 1, message: "redeem code does not exist or it's not active" });
+                                    }
                                 })
                             } else {
-                                res.json(infusion_data)
+                                infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                                    if (infusion_data.statusCode == 200) {
+                                        updateCustomers(function(response) {
+                                            res.json({ status: 1, message: "customer details updated", data: response })
+                                        })
+                                    } else {
+                                        res.json({ error: 1, message: "something went wrong on infusiosoft", data: infusion_data })
+                                    }
+                                })
                             }
                         })
                     } else {
-                        res.status(400).json({ error: 1, message: "redeem code does not exist or it's not active" });
+                        if (req.body.redeemCode) {
+                            redeemCode.findOne({ redeem_code: req.body.redeemCode, active_status: "Active" }).then((data) => {
+                                if (data) {
+                                    req.body.CodeRedeemFlag = true;
+                                    req.body.redeem_code = req.body.redeemCode;
+                                    req.body.reddeemed_date = new Date();
+                                    updateCustomers(function(response) {
+                                        res.json({ status: 1, message: "customer details updated", data: response })
+                                    })
+                                } else {
+                                    res.status(400).json({ error: 1, message: "redeem code does not exist or it's not active" });
+                                }
+                            })
+                        } else {
+                            updateCustomers(function(response) {
+                                res.json({ status: 1, message: "customer details updated", data: response })
+                            })
+                        }
                     }
-                })
-            } else {
-                infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
-                    if (infusion_data.statusCode == 200) {
-                        updateCustomers(function(response) {
-                            res.json({ status: 1, message: "customer details updated", data: response })
+
+                    function updateCustomers(callback) {
+                        Contact.update({ _id: req.body._id }, req.body).then((data) => {
+                            user_activity.userActivityLogs(req, data);
+                            callback(data)
+                        }, (err) => {
+                            res.status(400).json({ error: 1, message: "error occured", err: err })
                         })
-                    } else {
-                        res.json({ error: 1, message: "something went wrong on infusiosoft", data: infusion_data })
                     }
-                })
-            }
-        })
-    } else {
-        if (req.body.redeemCode) {
-            redeemCode.findOne({ redeem_code: req.body.redeemCode, active_status: "Active" }).then((data) => {
-                if (data) {
-                    req.body.CodeRedeemFlag = true;
-                    req.body.redeem_code = req.body.redeemCode;
-                    req.body.reddeemed_date = new Date();
-                    updateCustomers(function(response) {
-                        res.json({ status: 1, message: "customer details updated", data: response })
-                    })
-                } else {
-                    res.status(400).json({ error: 1, message: "redeem code does not exist or it's not active" });
                 }
             })
-        } else {
-            updateCustomers(function(response) {
-                res.json({ status: 1, message: "customer details updated", data: response })
-            })
         }
-    }
-
-    function updateCustomers(callback) {
-        Contact.update({ _id: req.body._id }, req.body).then((data) => {
-            user_activity.userActivityLogs(req, data);
-            callback(data)
-        }, (err) => {
-            res.status(400).json({ error: 1, message: "error occured", err: err })
-        })
-    }
+    })
 })
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
