@@ -261,7 +261,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     contact.created_at = new Date();
                     contact.updated_at = new Date();
                     contact.Infusion_synced_date = new Date();
-                    contact.contact_source = 3;
+                    contact.contact_source = 2;
                     contact.createdBy = req.user.email;
                     contact.modifiedBy = req.user.email;
                     if (phone) {
