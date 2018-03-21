@@ -124,7 +124,6 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
     var password = req.body.password;
     var phone = req.body.phone;
     var interests = req.body.interests;
-    var source = req.body.source;
     var type = req.body.type;
     var address1 = req.body.address1;
     var address2 = req.body.address2
@@ -171,8 +170,6 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
             res.status(400).json({ code: errorCode.signup.INVALIDMARITAL });
         } else if (kids != null && kids != '' && kids != '0' && kids != '1') {
             res.status(400).json({ code: errorCode.signup.INVALIDKIDS });
-        } else if (source != null && source != '' && source != '0' && source != '1' && source != '2' && source != '3') {
-            res.status(400).json({ code: errorCode.signup.INVALIDSOURCE });
         } else if (type != null && type != '' && type != '0' && type != '1') {
             res.status(400).json({ code: errorCode.signup.INVALIDTYPE });
         } else {
@@ -237,9 +234,6 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     if (password) {
                         contact.password = md5(password);
                     }
-                    if (source) {
-                        contact.contact_source = source;
-                    }
                     if (type) {
                         contact.type = type;
                     }
@@ -267,6 +261,7 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                     contact.created_at = new Date();
                     contact.updated_at = new Date();
                     contact.Infusion_synced_date = new Date();
+                    contact.contact_source = 3;
                     contact.createdBy = req.user.email;
                     contact.modifiedBy = req.user.email;
                     if (phone) {
