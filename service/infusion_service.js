@@ -8,7 +8,9 @@ module.exports = {
 
         return new Promise((resolve, reject) => {
             infusion_session.findOne().then((token) => {
-                body.birthday = new Date(body.birthday)
+                if (body.birthday) {
+                    body.birthday = new Date(body.birthday)
+                }
                 var data = {
                     "email_addresses": [{
                         "email": body.email,

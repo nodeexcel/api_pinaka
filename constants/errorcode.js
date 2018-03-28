@@ -24,7 +24,8 @@
         DUPLICATEEMAIL: 20,
         DUPLICATEPHONE: 21,
         EMPTYINTEREST: 22,
-        EMPTYROLE: 23
+        EMPTYROLE: 23,
+        EMPTYFACEBOOKID: 24
     },
 
     login: {

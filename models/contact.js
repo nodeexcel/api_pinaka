@@ -34,7 +34,9 @@ var ContactSchema = new Schema({
     updated_at: Date,
     token: String,
     infusion_id: String,
-    age_group: String
+    age_group: String,
+    facebookId: Number,
+    location: String
 });
 
 module.exports = mongoose.model('contacts', ContactSchema);

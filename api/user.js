@@ -12,6 +12,10 @@ var ContactInterest = require('../models/contactinterest');
 var Credit = require('../models/credit');
 var mongoose = require('mongoose');
 var nodemailer = require('nodemailer');
+var contact_source = require('../constants/contact_source');
+var infusion_service = require("../service/infusion_service")
+var Interest = require('../models/interest');
+
 var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -486,108 +490,44 @@ router.post('/user_find', function(req, res) {
 })
 
 router.post('/signup_login_fb', function(req, res) {
-    var name = req.body.name;
-    var email = req.body.email;
-    var birthday = req.body.birthday;
-    var zipcode = req.body.zipcode;
-    var gender = req.body.gender;
-    var marital = req.body.marital;
-    var kids = req.body.kids;
-    var password = req.body.password;
-    var phone = req.body.phone;
-    var interests = req.body.interests;
-    var source = req.body.source;
-    var type = req.body.type;
-
-    //null validate
-    if (name == null || name == '') {
-        res.status(401).json({ code: errorCode.signup.EMPTYNAME });
-    } else if (email == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYEMAIL });
-    } else if (birthday == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYBIRTHDAY });
-    } else if (zipcode == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYZIPCODE });
-    } else if (gender == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYGENDER });
-    } else if (marital == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYMARITAL });
-    } else if (kids == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYKIDS });
-    } else if (password == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYPASS });
-    } else if (source == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYSOURCE });
-    } else if (type == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYTYPE });
-    } else if (interests == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYINTEREST });
+    req.body.contact_source = contact_source.app_contact_source;
+    req.body.created_at = new Date();
+    req.body.updated_at = new Date();
+    req.body.token = md5((req.body.email | req.body.facebookId) + req.body.created_at);
+    var reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!req.body.email) {
+        res.status(400).json({ code: errorCode.signup.EMPTYEMAIL });
+    } else if (!reg.test(req.body.email)) {
+        res.status(400).json({ code: errorCode.signup.INVALIDEMAIL });
+    } else if (!req.body.facebookId) {
+        res.status(400).json({ code: errorCode.signup.EMPTYFACEBOOKID });
     } else {
-        //remove trim
-        name = name.trim();
-        email = email.trim();
-        birthday = birthday.trim();
-        zipcode = zipcode.trim();
-        if (phone) {
-            phone = phone.trim();
-        }
+        Contact.findOne({ $or: [{ email: req.body.email }, { facebookId: req.body.facebookId }] }).then((data) => {
+            if (data) {
+                Credit.find({ contact_id: mongoose.Types.ObjectId(data._id) }, function(err, credits) {
+                    var ret = JSON.parse(JSON.stringify(data));
+                    ret["creditcards"] = credits;
+                    res.status(200).json(ret);
+                });
+            } else {
+                if (req.body.password) {
+                    req.body.password = md5(req.body.password)
+                }
 
-        //email, birthday, phone number, zipcode, gender, kids, marital, interest, type validate
-        var reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        var regZip = /^[0-9]{1,5}$/;
-        var regPhone = /^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/;
+                Interest.find({}, function(err, interests) {
+                    var interestsTextArrayForInfusion = [];
+                    if (interests.length > 0) {
+                        for (var i = 0; i < interests.length; i++) {
+                            var i_id = interests[i]._id;
+                            if (req.body.interests != '' && req.body.interests != null && req.body.interests.indexOf(i_id) != -1) {
+                                interestsTextArrayForInfusion.push(interests[i].name)
 
-        if (!reg.test(email)) {
-            res.status(401).json({ code: errorCode.signup.INVALIDEMAIL });
-        } else if (isNaN((new Date(birthday)).getTime())) {
-            res.status(401).json({ code: errorCode.signup.INVALIDBIRTHDAY });
-        } else if (!regZip.test(zipcode)) {
-            res.status(401).json({ code: errorCode.signup.INVALIDZIPCODE });
-        } else if (gender != '0' && gender != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDGENDER });
-        } else if (marital != '0' && marital != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDMARITAL });
-        } else if (kids != '0' && kids != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDKIDS });
-        } else if (source != '0' && source != '1' && source != '2' && source != '3') {
-            res.status(401).json({ code: errorCode.signup.INVALIDSOURCE });
-        } else if (type != '0' && type != '1') {
-            res.status(401).json({ code: errorCode.signup.INVALIDTYPE });
-        } else {
-            //existing email or phone validate
-            var contact = new Contact;
-            Contact.findOne({ $or: [{ email: email }, { phone: phone }] }, function(err, user) {
-                if (user && user.email == email && email) {
-                    Contact.findOne({ email: email, password: md5(password) }).populate('interests.id').exec(function(err, user) {
-                        if (!user) {
-                            res.status(402).json({ code: errorCode.login.NOTMATCH });
-                        } else {
-                            Credit.find({ contact_id: mongoose.Types.ObjectId(user._id) }, function(err, credits) {
-                                var ret = JSON.parse(JSON.stringify(user));
-                                ret['creditcards'] = credits;
-                                res.status(200).json(ret);
-                            });
+                            }
                         }
-                    });
-                } else {
-                    contact.name = name;
-                    contact.email = email;
-                    contact.birthday = birthday;
-                    contact.zipcode = zipcode;
-                    contact.gender = gender;
-                    contact.marital = marital;
-                    contact.kids = kids;
-                    contact.password = md5(password);
-                    contact.created_at = new Date();
-                    contact.updated_at = new Date();
-                    contact.contact_source = source;
-                    contact.type = type;
-                    if (phone) {
-                        contact.phone = phone;
                     }
-                    if (interests != '') {
+                    if (req.body.interests) {
                         var interestDATA = [];
-                        var interestsItems = interests.split(":");
+                        var interestsItems = req.body.interests.split(":");
                         for (var i = 0; i < interestsItems.length; i++) {
                             var temp = interestsItems[i].split(",");
                             interestDATA.push({
@@ -595,30 +535,25 @@ router.post('/signup_login_fb', function(req, res) {
                                 level: temp[1]
                             });
                         }
-                        contact.interests = interestDATA;
+                        req.body.interests = interestDATA;
                     }
-                    contact.token = md5((contact.email | contact.phone) + contact.created_at);
-                    contact.save(function(err, data) {
-                        if (err) {
-                            res.status(401).json({ error: 1, error: err })
+                    infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                        if (infusion_data.statusCode == 201) {
+                            req.body.infusion_id = infusion_data.body.id;
+                            Contact.create(req.body).then((data) => {
+                                Credit.find({ contact_id: mongoose.Types.ObjectId(data._id) }, function(err, credits) {
+                                    var ret = JSON.parse(JSON.stringify(data));
+                                    ret["creditcards"] = credits;
+                                    res.status(200).json(ret);
+                                });
+                            })
                         } else {
-                            Contact.findOne({ email: email, password: md5(password) }).populate('interests.id').exec(function(err, user) {
-                                if (!user) {
-                                    res.status(402).json({ code: errorCode.login.NOTMATCH });
-                                } else {
-                                    Credit.find({ contact_id: mongoose.Types.ObjectId(user._id) }, function(err, credits) {
-                                        var ret = JSON.parse(JSON.stringify(user));
-                                        ret['creditcards'] = credits;
-                                        res.status(200).json(ret);
-                                    });
-                                }
-                            });
+                            res.status(400).json({ error: 1, message: "something went wrong on infusionsoft" })
                         }
-
-                    });
-                }
-            });
-        }
+                    })
+                })
+            }
+        })
     }
 })
 module.exports = router;
