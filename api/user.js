@@ -135,7 +135,6 @@ router.post('/signup', function(req, res) {
             //existing email or phone validate
             var contact = new Contact;
             Contact.findOne({ $or: [{ email: email }, { phone: phone }] }, function(err, user) {
-                console.log(user, "=============================1111111111=")
                 if (user && user.email == email && email) {
                     res.status(402).json({ code: errorCode.signup.DUPLICATEEMAIL });
                 } else if (user && user.phone == phone && phone) {
@@ -193,7 +192,7 @@ router.post('/signup', function(req, res) {
                                         console.log("success")
                                     }
                                     //sned email
-                                    var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
+                                    var html = "<h2 style='linear-gradient(40deg,#d073ff,#1b025c); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
                                     html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
                                     html += "<p>Welcome to Pinaka!</p></br>";
                                     html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
@@ -470,7 +469,6 @@ router.post('/forgot', function(req, res) {
                 }
                 Contact.update({ _id: user._id }, { $set: { temporary_password: true, password: md5(random_password) } }).then((data) => {
                     //send email
-                    console.log(data)
                     var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
                     html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
                     html += "<p>We got a request to reset your pinaka password.</p>";
