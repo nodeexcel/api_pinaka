@@ -1,5 +1,4 @@
-﻿
-var express = require('express');
+﻿var express = require('express');
 var router = express.Router();
 var errorCode = require('../constants/errorcode');
 var Contact = require('../models/contact');
@@ -69,7 +68,6 @@ router.post('/login', function(req, res) {
 });
 
 router.post('/signup', function(req, res) {
-    console.log("signup info========>", req.body);
     var name = req.body.name;
     var email = req.body.email;
     var birthday = req.body.birthday;
@@ -77,7 +75,6 @@ router.post('/signup', function(req, res) {
     var gender = req.body.gender;
     var marital = req.body.marital;
     var kids = req.body.kids;
-    var password = req.body.password;
     var phone = req.body.phone;
     var interests = req.body.interests;
     var source = req.body.source;
@@ -90,18 +87,12 @@ router.post('/signup', function(req, res) {
         res.status(401).json({ code: errorCode.signup.EMPTYEMAIL });
     } else if (birthday == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYBIRTHDAY });
-    } else if (zipcode == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYZIPCODE });
     } else if (gender == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYGENDER });
     } else if (marital == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYMARITAL });
     } else if (kids == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYKIDS });
-    } else if (password == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYPASS });
-    } else if (source == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYSOURCE });
     } else if (type == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYTYPE });
     } else if (interests == null) {
@@ -111,9 +102,16 @@ router.post('/signup', function(req, res) {
         name = name.trim();
         email = email.trim();
         birthday = birthday.trim();
-        zipcode = zipcode.trim();
+        if (zipcode) {
+            zipcode = zipcode.trim();
+        }
         if (phone) {
             phone = phone.trim();
+        }
+        let possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var random_password = '';
+        for (var i = 0; i < 6; i++) {
+            random_password += possible.charAt(Math.floor(Math.random() * possible.length));
         }
 
         //email, birthday, phone number, zipcode, gender, kids, marital, interest, type validate
@@ -125,22 +123,19 @@ router.post('/signup', function(req, res) {
             res.status(401).json({ code: errorCode.signup.INVALIDEMAIL });
         } else if (isNaN((new Date(birthday)).getTime())) {
             res.status(401).json({ code: errorCode.signup.INVALIDBIRTHDAY });
-        } else if (!regZip.test(zipcode)) {
-            res.status(401).json({ code: errorCode.signup.INVALIDZIPCODE });
         } else if (gender != '0' && gender != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDGENDER });
         } else if (marital != '0' && marital != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDMARITAL });
         } else if (kids != '0' && kids != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDKIDS });
-        } else if (source != '0' && source != '1' && source != '2' && source != '3') {
-            res.status(401).json({ code: errorCode.signup.INVALIDSOURCE });
         } else if (type != '0' && type != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDTYPE });
         } else {
             //existing email or phone validate
             var contact = new Contact;
             Contact.findOne({ $or: [{ email: email }, { phone: phone }] }, function(err, user) {
+                console.log(user, "=============================1111111111=")
                 if (user && user.email == email && email) {
                     res.status(402).json({ code: errorCode.signup.DUPLICATEEMAIL });
                 } else if (user && user.phone == phone && phone) {
@@ -149,25 +144,28 @@ router.post('/signup', function(req, res) {
                     contact.name = name;
                     contact.email = email;
                     contact.birthday = birthday;
-                    contact.zipcode = zipcode;
                     contact.gender = gender;
                     contact.marital = marital;
                     contact.kids = kids;
-                    contact.password = md5(password);
+                    contact.password = md5(random_password);
+                    contact.temporary_password = true;
                     contact.created_at = new Date();
                     contact.updated_at = new Date();
-                    contact.contact_source = source;
+                    contact.contact_source = contact_source.app_contact_source;;
                     contact.type = type;
                     if (phone) {
                         contact.phone = phone;
                     }
-                    Interest.find({}, function(err, interests) {
+                    if (zipcode) {
+                        contact.zipcode = zipcode;
+                    }
+                    Interest.find({}, function(err, interestsData) {
                         var interestsTextArrayForInfusion = [];
-                        if (interests.length > 0) {
-                            for (var i = 0; i < interests.length; i++) {
-                                var i_id = interests[i]._id;
+                        if (interestsData.length > 0) {
+                            for (var i = 0; i < interestsData.length; i++) {
+                                var i_id = interestsData[i]._id;
                                 if (req.body.interests != '' && req.body.interests != null && req.body.interests.indexOf(i_id) != -1) {
-                                    interestsTextArrayForInfusion.push(interests[i].name)
+                                    interestsTextArrayForInfusion.push(interestsData[i].name)
 
                                 }
                             }
@@ -185,41 +183,44 @@ router.post('/signup', function(req, res) {
                             contact.interests = interestDATA;
                         }
                         contact.token = md5((contact.email | contact.phone) + contact.created_at);
-                        contact.save(function(err, data) {
-                            if (err) {
-                                console.log("====", err)
-                            } else {
-                                console.log(data)
+                        infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
+                            if (infusion_data.statusCode == 201) {
+                                req.body.infusion_id = infusion_data.body.id;
+                                contact.save(function(err, data) {
+                                    if (err) {
+                                        console.log("====", err)
+                                    } else {
+                                        console.log("success")
+                                    }
+                                    //sned email
+                                    var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
+                                    html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
+                                    html += "<p>Welcome to Pinaka!</p></br>";
+                                    html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
+                                    html += "<p>To get started, we need to confirm your email address, so please login with following passowrd: <b>" + random_password + "</b></p></br>";
+                                    html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
+                                    html += "<p>Thanks!</p></br>";
+                                    html += "<p>- The Team at Pinaka</p></div>";
+
+                                    var mailOptions = {
+                                        from: 'pinaka.digital@gmail.com',
+                                        to: contact.email,
+                                        subject: 'Welcome to Pinaka',
+                                        html: html
+                                    };
+
+                                    transporter.sendMail(mailOptions, function(error, info) {
+                                        if (error) {
+                                            console.log("email error========>", error);
+                                        } else {
+                                            console.log('Email sent: ' + info.response);
+                                        }
+                                    });
+                                    res.status(200).json(contact);
+                                });
+
                             }
-                            //sned email
-                            var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                            html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
-                            html += "<p>Welcome to Pinaka!</p></br>";
-                            html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
-                            html += "<p>To get started, we need to confirm your email address, so please login with following passowrd: </p></br>";
-                            html += "<p>Confirm your email address</p></br>";
-                            html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
-                            html += "<p>Thanks!</p></br>";
-                            html += "<p>- The Team at Pinaka</p></div>";
-
-                            var mailOptions = {
-                                from: 'pinaka.digital@gmail.com',
-                                to: contact.email,
-                                subject: 'Welcome to Pinaka',
-                                html: html
-                            };
-
-                            transporter.sendMail(mailOptions, function(error, info) {
-                                if (error) {
-                                    console.log("email error========>", error);
-                                } else {
-                                    console.log('Email sent: ' + info.response);
-                                }
-                            });
-
-                            console.log('sigunup success========>', contact)
-                            res.status(200).json(contact);
-                        });
+                        })
                     })
                 }
             });
