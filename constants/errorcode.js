@@ -25,7 +25,8 @@
         DUPLICATEPHONE: 21,
         EMPTYINTEREST: 22,
         EMPTYROLE: 23,
-        EMPTYFACEBOOKID: 24
+        EMPTYFACEBOOKID: 24,
+        EMPTYNEWPASSWORD: 25
     },
 
     login: {

@@ -1,5 +1,4 @@
-﻿﻿
-var express = require('express');
+﻿var express = require('express');
 var router = express.Router();
 var errorCode = require('../constants/errorcode');
 var Contact = require('../models/contact');
@@ -69,7 +68,6 @@ router.post('/login', function(req, res) {
 });
 
 router.post('/signup', function(req, res) {
-    console.log("signup info========>", req.body);
     var name = req.body.name;
     var email = req.body.email;
     var birthday = req.body.birthday;
@@ -77,7 +75,6 @@ router.post('/signup', function(req, res) {
     var gender = req.body.gender;
     var marital = req.body.marital;
     var kids = req.body.kids;
-    var password = req.body.password;
     var phone = req.body.phone;
     var interests = req.body.interests;
     var source = req.body.source;
@@ -96,10 +93,6 @@ router.post('/signup', function(req, res) {
         res.status(401).json({ code: errorCode.signup.EMPTYMARITAL });
     } else if (kids == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYKIDS });
-    } else if (password == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYPASS });
-    } else if (source == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYSOURCE });
     } else if (type == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYTYPE });
     } else if (interests == null) {
@@ -114,6 +107,11 @@ router.post('/signup', function(req, res) {
         }
         if (phone) {
             phone = phone.trim();
+        }
+        let possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var random_password = '';
+        for (var i = 0; i < 6; i++) {
+            random_password += possible.charAt(Math.floor(Math.random() * possible.length));
         }
 
         //email, birthday, phone number, zipcode, gender, kids, marital, interest, type validate
@@ -131,8 +129,6 @@ router.post('/signup', function(req, res) {
             res.status(401).json({ code: errorCode.signup.INVALIDMARITAL });
         } else if (kids != '0' && kids != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDKIDS });
-        } else if (source != '0' && source != '1' && source != '2' && source != '3') {
-            res.status(401).json({ code: errorCode.signup.INVALIDSOURCE });
         } else if (type != '0' && type != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDTYPE });
         } else {
@@ -150,10 +146,11 @@ router.post('/signup', function(req, res) {
                     contact.gender = gender;
                     contact.marital = marital;
                     contact.kids = kids;
-                    contact.password = md5(password);
+                    contact.password = md5(random_password);
+                    contact.temporary_password = true;
                     contact.created_at = new Date();
                     contact.updated_at = new Date();
-                    contact.contact_source = source;
+                    contact.contact_source = contact_source.app_contact_source;;
                     contact.type = type;
                     if (phone) {
                         contact.phone = phone;
@@ -161,54 +158,69 @@ router.post('/signup', function(req, res) {
                     if (zipcode) {
                         contact.zipcode = zipcode;
                     }
-                    if (interests != '') {
-                        var interestDATA = [];
-                        var interestsItems = interests.split(":");
-                        for (var i = 0; i < interestsItems.length; i++) {
-                            var temp = interestsItems[i].split(",");
-                            interestDATA.push({
-                                id: temp[0],
-                                level: temp[1]
-                            });
-                        }
-                        contact.interests = interestDATA;
-                    }
-                    contact.token = md5((contact.email | contact.phone) + contact.created_at);
-                    contact.save(function(err, data) {
-                        if (err) {
-                            console.log("====", err)
-                        } else {
-                            console.log(data)
-                        }
-                        //sned email
-                        var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                        html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
-                        html += "<p>Welcome to Pinaka!</p></br>";
-                        html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
-                        html += "<p>To get started, we need to confirm your email address, so please click this link to finish creating your account:</p></br>";
-                        html += "<p>Confirm your email address</p></br>";
-                        html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
-                        html += "<p>Thanks!</p></br>";
-                        html += "<p>- The Team at Pinaka</p></div>";
+                    Interest.find({}, function(err, interestsData) {
+                        var interestsTextArrayForInfusion = [];
+                        if (interestsData.length > 0) {
+                            for (var i = 0; i < interestsData.length; i++) {
+                                var i_id = interestsData[i]._id;
+                                if (req.body.interests != '' && req.body.interests != null && req.body.interests.indexOf(i_id) != -1) {
+                                    interestsTextArrayForInfusion.push(interestsData[i].name)
 
-                        var mailOptions = {
-                            from: 'pinaka.digital@gmail.com',
-                            to: contact.email,
-                            subject: 'Welcome to Pinaka',
-                            html: html
-                        };
-
-                        transporter.sendMail(mailOptions, function(error, info) {
-                            if (error) {
-                                console.log("email error========>", error);
-                            } else {
-                                console.log('Email sent: ' + info.response);
+                                }
                             }
-                        });
+                        }
+                        if (interests != '') {
+                            var interestDATA = [];
+                            var interestsItems = interests.split(":");
+                            for (var i = 0; i < interestsItems.length; i++) {
+                                var temp = interestsItems[i].split(",");
+                                interestDATA.push({
+                                    id: temp[0],
+                                    level: temp[1]
+                                });
+                            }
+                            contact.interests = interestDATA;
+                        }
+                        contact.token = md5((contact.email | contact.phone) + contact.created_at);
+                        infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
+                            if (infusion_data.statusCode == 201) {
+                                req.body.infusion_id = infusion_data.body.id;
+                                contact.save(function(err, data) {
+                                    if (err) {
+                                        console.log("====", err)
+                                    } else {
+                                        console.log("success")
+                                    }
+                                    //sned email
+                                    var html = "<h2 style='linear-gradient(40deg,#d073ff,#1b025c); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
+                                    html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
+                                    html += "<p>Welcome to Pinaka!</p></br>";
+                                    html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
+                                    html += "<p>To get started, we need to confirm your email address, so please login with following passowrd: <b>" + random_password + "</b></p></br>";
+                                    html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
+                                    html += "<p>Thanks!</p></br>";
+                                    html += "<p>- The Team at Pinaka</p></div>";
 
-                        console.log('sigunup success========>', contact)
-                        res.status(200).json(contact);
-                    });
+                                    var mailOptions = {
+                                        from: 'pinaka.digital@gmail.com',
+                                        to: contact.email,
+                                        subject: 'Welcome to Pinaka',
+                                        html: html
+                                    };
+
+                                    transporter.sendMail(mailOptions, function(error, info) {
+                                        if (error) {
+                                            console.log("email error========>", error);
+                                        } else {
+                                            console.log('Email sent: ' + info.response);
+                                        }
+                                    });
+                                    res.status(200).json(contact);
+                                });
+
+                            }
+                        })
+                    })
                 }
             });
         }
@@ -450,29 +462,35 @@ router.post('/forgot', function(req, res) {
             if (!user) {
                 res.status(200).json({});
             } else {
-                //send email
-                var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
-                html += "<p>We got a request to reset your pinaka password.</p>";
-                html += "<p style='text-align: center'><button style='background-color: #fff; border-radius: 5px; padding-top: 10px; padding-bottom: 10px; padding-left: 20px; padding-right: 20px; border-color: rgb(16,28,90)'>Reset Password</button></p>";
-                html += "<p>If you ignore this message, your password won't be changed.</p>";
-                html += "<p>If you didn't request a password reset, <a href='http://pinaka.com' style='color: rgb(16,28,90)'>let us know</a></p></div>";
+                let possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+                var random_password = '';
+                for (var i = 0; i < 6; i++) {
+                    random_password += possible.charAt(Math.floor(Math.random() * possible.length));
+                }
+                Contact.update({ _id: user._id }, { $set: { temporary_password: true, password: md5(random_password) } }).then((data) => {
+                    //send email
+                    var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
+                    html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
+                    html += "<p>We got a request to reset your pinaka password.</p>";
+                    html += "<p>your temporary password is: " + random_password + "</p>";
+                    html += "<p>If you didn't request a password reset, <a href='http://pinaka.com' style='color: rgb(16,28,90)'>let us know</a></p></div>";
 
-                var mailOptions = {
-                    from: 'pinaka.digital@gmail.com',
-                    to: email,
-                    subject: 'Forgot password',
-                    html: html
-                };
+                    var mailOptions = {
+                        from: 'pinaka.digital@gmail.com',
+                        to: email,
+                        subject: 'Forgot password',
+                        html: html
+                    };
 
-                transporter.sendMail(mailOptions, function(error, info) {
-                    if (error) {
-                        console.log("Email err========>", error);
-                    } else {
-                        console.log('Email sent: ' + info.response);
-                    }
-                });
-                res.status(200).json({});
+                    transporter.sendMail(mailOptions, function(error, info) {
+                        if (error) {
+                            console.log("Email err========>", error);
+                        } else {
+                            console.log('Email sent: ' + info.response);
+                        }
+                    });
+                    res.status(200).json({});
+                })
             }
         });
     }
@@ -513,7 +531,6 @@ router.post('/signup_login_fb', function(req, res) {
                 if (req.body.password) {
                     req.body.password = md5(req.body.password)
                 }
-
                 Interest.find({}, function(err, interests) {
                     var interestsTextArrayForInfusion = [];
                     if (interests.length > 0) {
@@ -551,6 +568,28 @@ router.post('/signup_login_fb', function(req, res) {
                             res.status(400).json({ error: 1, message: "something went wrong on infusionsoft" })
                         }
                     })
+                })
+            }
+        })
+    }
+})
+
+router.put('/change_password', function(req, res) {
+    var email = req.body.email;
+    var password = req.body.password;
+    if (!req.body.email) {
+        res.status(400).json({ code: errorCode.login.EMPTYEMAIL });
+    } else if (!req.body.password) {
+        res.status(400).json({ code: errorCode.login.EMPTYPASSWORD });
+    } else if (!req.body.new_password) {
+        res.status(400).json({ code: errorCode.login.EMPTYNEWPASSWORD });
+    } else {
+        Contact.findOne({ email: req.body.email, password: md5(req.body.password) }).then((user) => {
+            if (!user) {
+                res.status(402).json({ code: errorCode.login.NOTMATCH });
+            } else {
+                Contact.update({ _id: user._id }, { $set: { temporary_password: false, password: md5(req.body.new_password) } }).then((data) => {
+                    res.json({ status: 1, data: data })
                 })
             }
         })
