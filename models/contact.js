@@ -36,7 +36,8 @@ var ContactSchema = new Schema({
     infusion_id: String,
     age_group: String,
     facebookId: Number,
-    location: String
+    location: String,
+    temporary_password: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('contacts', ContactSchema);
