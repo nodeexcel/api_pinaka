@@ -90,8 +90,6 @@ router.post('/signup', function(req, res) {
         res.status(401).json({ code: errorCode.signup.EMPTYEMAIL });
     } else if (birthday == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYBIRTHDAY });
-    } else if (zipcode == null) {
-        res.status(401).json({ code: errorCode.signup.EMPTYZIPCODE });
     } else if (gender == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYGENDER });
     } else if (marital == null) {
@@ -111,7 +109,9 @@ router.post('/signup', function(req, res) {
         name = name.trim();
         email = email.trim();
         birthday = birthday.trim();
-        zipcode = zipcode.trim();
+        if (zipcode) {
+            zipcode = zipcode.trim();
+        }
         if (phone) {
             phone = phone.trim();
         }
@@ -125,8 +125,6 @@ router.post('/signup', function(req, res) {
             res.status(401).json({ code: errorCode.signup.INVALIDEMAIL });
         } else if (isNaN((new Date(birthday)).getTime())) {
             res.status(401).json({ code: errorCode.signup.INVALIDBIRTHDAY });
-        } else if (!regZip.test(zipcode)) {
-            res.status(401).json({ code: errorCode.signup.INVALIDZIPCODE });
         } else if (gender != '0' && gender != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDGENDER });
         } else if (marital != '0' && marital != '1') {
@@ -149,7 +147,6 @@ router.post('/signup', function(req, res) {
                     contact.name = name;
                     contact.email = email;
                     contact.birthday = birthday;
-                    contact.zipcode = zipcode;
                     contact.gender = gender;
                     contact.marital = marital;
                     contact.kids = kids;
@@ -160,6 +157,9 @@ router.post('/signup', function(req, res) {
                     contact.type = type;
                     if (phone) {
                         contact.phone = phone;
+                    }
+                    if (zipcode) {
+                        contact.zipcode = zipcode;
                     }
                     if (interests != '') {
                         var interestDATA = [];
