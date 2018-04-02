@@ -91,6 +91,8 @@ router.post('/signup', function(req, res) {
         res.status(401).json({ code: errorCode.signup.EMPTYGENDER });
     } else if (marital == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYMARITAL });
+    } else if (zipcode == null) {
+        res.status(401).json({ code: errorCode.signup.EMPTYZIPCODE });
     } else if (kids == null) {
         res.status(401).json({ code: errorCode.signup.EMPTYKIDS });
     } else if (type == null) {
@@ -102,9 +104,7 @@ router.post('/signup', function(req, res) {
         name = name.trim();
         email = email.trim();
         birthday = birthday.trim();
-        if (zipcode) {
-            zipcode = zipcode.trim();
-        }
+        zipcode = zipcode.trim();
         if (phone) {
             phone = phone.trim();
         }
@@ -125,6 +125,8 @@ router.post('/signup', function(req, res) {
             res.status(401).json({ code: errorCode.signup.INVALIDBIRTHDAY });
         } else if (gender != '0' && gender != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDGENDER });
+        } else if (!regZip.test(zipcode)) {
+            res.status(401).json({ code: errorCode.signup.INVALIDZIPCODE });
         } else if (marital != '0' && marital != '1') {
             res.status(401).json({ code: errorCode.signup.INVALIDMARITAL });
         } else if (kids != '0' && kids != '1') {
@@ -155,9 +157,7 @@ router.post('/signup', function(req, res) {
                     if (phone) {
                         contact.phone = phone;
                     }
-                    if (zipcode) {
-                        contact.zipcode = zipcode;
-                    }
+                    contact.zipcode = zipcode;
                     Interest.find({}, function(err, interestsData) {
                         var interestsTextArrayForInfusion = [];
                         if (interestsData.length > 0) {
@@ -575,8 +575,7 @@ router.post('/signup_login_fb', function(req, res) {
 })
 
 router.put('/change_password', function(req, res) {
-    var email = req.body.email;
-    var password = req.body.password;
+    console.log(req.body)
     if (!req.body.email) {
         res.status(400).json({ code: errorCode.login.EMPTYEMAIL });
     } else if (!req.body.password) {

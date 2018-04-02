@@ -26,13 +26,13 @@
         EMPTYINTEREST: 22,
         EMPTYROLE: 23,
         EMPTYFACEBOOKID: 24,
-        EMPTYNEWPASSWORD: 25
     },
 
     login: {
         EMPTYEMAIL: 0,
         EMPTYPASSWORD: 1,
-        NOTMATCH: 2
+        NOTMATCH: 2,
+        EMPTYNEWPASSWORD: 3
     },
 
     sendcode: {
