@@ -154,6 +154,7 @@ router.post('/signup', function(req, res) {
                     contact.updated_at = new Date();
                     contact.contact_source = contact_source.app_contact_source;;
                     contact.type = type;
+                    contact.app_installed = true;
                     if (phone) {
                         contact.phone = phone;
                     }
