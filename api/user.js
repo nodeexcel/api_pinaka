@@ -14,6 +14,7 @@ var nodemailer = require('nodemailer');
 var contact_source = require('../constants/contact_source');
 var infusion_service = require("../service/infusion_service")
 var Interest = require('../models/interest');
+var fs = require('fs');
 
 var transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -186,27 +187,44 @@ router.post('/signup', function(req, res) {
                         infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
                             if (infusion_data.statusCode == 201) {
                                 req.body.infusion_id = infusion_data.body.id;
-                                contact.save(function(err, data) {
-                                    if (err) {
-                                        console.log("====", err)
-                                    } else {
-                                        console.log("success")
-                                    }
-                                    //sned email
-                                    var html = "<h2 style='linear-gradient(40deg,#d073ff,#1b025c); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                                    html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
-                                    html += "<p>Welcome to Pinaka!</p></br>";
-                                    html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
-                                    html += "<p>To get started, we need to confirm your email address, so please login with following passowrd: <b>" + random_password + "</b></p></br>";
-                                    html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
-                                    html += "<p>Thanks!</p></br>";
-                                    html += "<p>- The Team at Pinaka</p></div>";
+                                // contact.save(function(err, data) {
+                                // if (err) {
+                                //         console.log("====", err)
+                                //     } else {
+                                //         console.log("success")
+                                //     }
 
+                                var readHTMLFile = function(path, callback) {
+                                    fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
+                                        if (err) {
+                                            throw err;
+                                            callback(err);
+                                        } else {
+                                            callback(null, html);
+                                        }
+                                    });
+                                };
+
+                                readHTMLFile(__dirname + '/test.html', function(err, html) {
+                                    // var template = handlebars.compile(html);
+                                    // console.log(template, "==============")
+
+
+                                    //sned email
+                                    // var html = "<h2 style='linear-gradient(40deg,#d073ff,#1b025c); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
+                                    // html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
+                                    // html += "<p>Welcome to Pinaka!</p></br>";
+                                    // html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
+                                    // html += "<p>To get started, we need to confirm your email address, so please login with following passowrd: <b>" + random_password + "</b></p></br>";
+                                    // html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
+                                    // html += "<p>Thanks!</p></br>";
+                                    // html += "<p>- The Team at Pinaka</p></div>";
+                                    console.log(html, "pppppppppppp")
                                     var mailOptions = {
                                         from: 'pinaka.digital@gmail.com',
                                         to: contact.email,
                                         subject: 'Welcome to Pinaka',
-                                        html: html
+                                        html: html.toString()
                                     };
 
                                     transporter.sendMail(mailOptions, function(error, info) {
@@ -216,8 +234,9 @@ router.post('/signup', function(req, res) {
                                             console.log('Email sent: ' + info.response);
                                         }
                                     });
-                                    res.status(200).json(contact);
-                                });
+                                })
+                                res.status(200).json(contact);
+                                // });
 
                             }
                         })
