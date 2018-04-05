@@ -1,4 +1,5 @@
 ﻿var express = require('express');
+var app = express();
 var router = express.Router();
 var errorCode = require('../constants/errorcode');
 var Contact = require('../models/contact');
@@ -14,7 +15,9 @@ var nodemailer = require('nodemailer');
 var contact_source = require('../constants/contact_source');
 var infusion_service = require("../service/infusion_service")
 var Interest = require('../models/interest');
-var fs = require('fs');
+var handlebars = require('handlebars');
+var readfile = require('../service/readfile');
+
 
 var transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -168,7 +171,6 @@ router.post('/signup', function(req, res) {
                                 var i_id = interestsData[i]._id;
                                 if (req.body.interests != '' && req.body.interests != null && req.body.interests.indexOf(i_id) != -1) {
                                     interestsTextArrayForInfusion.push(interestsData[i].name)
-
                                 }
                             }
                         }
@@ -188,57 +190,39 @@ router.post('/signup', function(req, res) {
                         infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
                             if (infusion_data.statusCode == 201) {
                                 req.body.infusion_id = infusion_data.body.id;
-                                // contact.save(function(err, data) {
-                                // if (err) {
-                                //         console.log("====", err)
-                                //     } else {
-                                //         console.log("success")
-                                //     }
+                                contact.save(function(err, data) {
+                                    if (err) {
+                                        console.log("====", err)
+                                    } else {
+                                        console.log("success")
+                                        res.status(200).json(contact);
+                                    }
 
-                                var readHTMLFile = function(path, callback) {
-                                    fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
-                                        if (err) {
-                                            throw err;
-                                            callback(err);
-                                        } else {
-                                            callback(null, html);
-                                        }
-                                    });
-                                };
+                                    readfile.readHTMLFile('./public/email_templates/signup.html', function(err, html) {
+                                        var template = handlebars.compile(html);
+                                        var replacements = {
+                                            username: email,
+                                            port: req.socket.localPort,
+                                            name: name,
+                                            randomPassword: random_password
+                                        };
+                                        var htmlToSend = template(replacements);
+                                        var mailOptions = {
+                                            from: 'pinaka.digital@gmail.com',
+                                            to: contact.email,
+                                            subject: 'Welcome to Pinaka',
+                                            html: htmlToSend
+                                        };
 
-                                readHTMLFile(__dirname + '/test.html', function(err, html) {
-                                    // var template = handlebars.compile(html);
-                                    // console.log(template, "==============")
-
-
-                                    //sned email
-                                    // var html = "<h2 style='linear-gradient(40deg,#d073ff,#1b025c); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                                    // html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-bottom: 0; margin-top: 0'>Welcome to Pinaka - just one more step!</h3>";
-                                    // html += "<p>Welcome to Pinaka!</p></br>";
-                                    // html += "<p>We're on a mission to make your working life simpler, more pleasant and more productive. This should be easy.</p></br>";
-                                    // html += "<p>To get started, we need to confirm your email address, so please login with following passowrd: <b>" + random_password + "</b></p></br>";
-                                    // html += "<p>We welcome your feedback, ideas and suggestions. We really want to make your life easier, so if we're falling short or should be doing something different, we want to hear about it. Send us an email at <a style='color: #f2c047'>pinaka.digital@gmail.com</a>.</p></br>";
-                                    // html += "<p>Thanks!</p></br>";
-                                    // html += "<p>- The Team at Pinaka</p></div>";
-                                    console.log(html, "pppppppppppp")
-                                    var mailOptions = {
-                                        from: 'pinaka.digital@gmail.com',
-                                        to: contact.email,
-                                        subject: 'Welcome to Pinaka',
-                                        html: html.toString()
-                                    };
-
-                                    transporter.sendMail(mailOptions, function(error, info) {
-                                        if (error) {
-                                            console.log("email error========>", error);
-                                        } else {
-                                            console.log('Email sent: ' + info.response);
-                                        }
-                                    });
-                                })
-                                res.status(200).json(contact);
-                                // });
-
+                                        transporter.sendMail(mailOptions, function(error, info) {
+                                            if (error) {
+                                                console.log("email error========>", error);
+                                            } else {
+                                                console.log('Email sent: ' + info.response);
+                                            }
+                                        });
+                                    })
+                                });
                             }
                         })
                     })
@@ -436,18 +420,24 @@ router.put('/update', function(req, res) {
 
                 user.updated_at = new Date();
                 user.save(function() {
-                    if (password) {
-                        var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                        html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
-                        html += "<p>We got a request to change your pinaka password.</p>";
-                        html += "<p>If you didn't changed a password, <a href='http://pinaka.com' style='color: rgb(16,28,90)'>let us know</a></p></div>";
+                    var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
+                    html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
+                    html += "<p>We got a request to change your pinaka password.</p>";
+                    html += "<p>If you didn't changed a password, <a href='http://pinaka.com' style='color: rgb(16,28,90)'>let us know</a></p></div>";
 
-                        //send email
+                    //send email
+                    readfile.readHTMLFile('./public/email_templates/update_profile.html', function(err, html) {
+                        var template = handlebars.compile(html);
+                        var replacements = {
+                            port: req.socket.localPort,
+                            name: user.name,
+                        };
+                        var htmlToSend = template(replacements);
                         var mailOptions = {
                             from: 'pinaka.digital@gmail.com',
                             to: user.email,
                             subject: 'Change password',
-                            html: html
+                            html: htmlToSend
                         };
 
                         transporter.sendMail(mailOptions, function(error, info) {
@@ -457,7 +447,7 @@ router.put('/update', function(req, res) {
                                 console.log('Email sent: ' + info.response);
                             }
                         });
-                    }
+                    })
                     Contact.findOne({ token: token }).populate('interests.id').exec(function(err, user1) {
                         Credit.find({ contact_id: mongoose.Types.ObjectId(user1._id) }, function(err, credits) {
                             var ret = JSON.parse(JSON.stringify(user1));
@@ -483,33 +473,39 @@ router.post('/forgot', function(req, res) {
             if (!user) {
                 res.status(200).json({});
             } else {
+
                 let possible = "abcdefghijklmnopqrstuvwxyz0123456789";
                 var random_password = '';
                 for (var i = 0; i < 6; i++) {
                     random_password += possible.charAt(Math.floor(Math.random() * possible.length));
                 }
+
                 Contact.update({ _id: user._id }, { $set: { temporary_password: true, password: md5(random_password) } }).then((data) => {
                     //send email
-                    var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
-                    html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
-                    html += "<p>We got a request to reset your pinaka password.</p>";
-                    html += "<p>your temporary password is: " + random_password + "</p>";
-                    html += "<p>If you didn't request a password reset, <a href='http://pinaka.com' style='color: rgb(16,28,90)'>let us know</a></p></div>";
+                    readfile.readHTMLFile('./public/email_templates/reset_password.html', function(err, html) {
+                        var template = handlebars.compile(html);
+                        var replacements = {
+                            username: user.email,
+                            port: req.socket.localPort,
+                            name: user.name,
+                            randomPassword: random_password
+                        };
+                        var htmlToSend = template(replacements);
+                        var mailOptions = {
+                            from: 'pinaka.digital@gmail.com',
+                            to: email,
+                            subject: 'Forgot password',
+                            html: htmlToSend
+                        };
 
-                    var mailOptions = {
-                        from: 'pinaka.digital@gmail.com',
-                        to: email,
-                        subject: 'Forgot password',
-                        html: html
-                    };
-
-                    transporter.sendMail(mailOptions, function(error, info) {
-                        if (error) {
-                            console.log("Email err========>", error);
-                        } else {
-                            console.log('Email sent: ' + info.response);
-                        }
-                    });
+                        transporter.sendMail(mailOptions, function(error, info) {
+                            if (error) {
+                                console.log("Email err========>", error);
+                            } else {
+                                console.log('Email sent: ' + info.response);
+                            }
+                        });
+                    })
                     res.status(200).json({});
                 })
             }
@@ -596,7 +592,6 @@ router.post('/signup_login_fb', function(req, res) {
 })
 
 router.put('/change_password', function(req, res) {
-    console.log(req.body)
     if (!req.body.email) {
         res.status(400).json({ code: errorCode.login.EMPTYEMAIL });
     } else if (!req.body.password) {
