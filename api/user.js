@@ -197,14 +197,15 @@ router.post('/signup', function(req, res) {
                                         console.log("success")
                                         res.status(200).json(contact);
                                     }
-
+                                    console.log(req.socket)
                                     readfile.readHTMLFile('./public/email_templates/signup.html', function(err, html) {
                                         var template = handlebars.compile(html);
                                         var replacements = {
                                             username: email,
                                             port: req.socket.localPort,
                                             name: name,
-                                            randomPassword: random_password
+                                            randomPassword: random_password,
+                                            host: req.hostname
                                         };
                                         var htmlToSend = template(replacements);
                                         var mailOptions = {
@@ -431,6 +432,7 @@ router.put('/update', function(req, res) {
                         var replacements = {
                             port: req.socket.localPort,
                             name: user.name,
+                            host: req.hostname
                         };
                         var htmlToSend = template(replacements);
                         var mailOptions = {
@@ -495,7 +497,8 @@ router.post('/forgot', function(req, res) {
                             from: 'pinaka.digital@gmail.com',
                             to: email,
                             subject: 'Forgot password',
-                            html: htmlToSend
+                            html: htmlToSend,
+                            host: req.hostname
                         };
 
                         transporter.sendMail(mailOptions, function(error, info) {

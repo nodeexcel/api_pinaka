@@ -275,7 +275,8 @@ router.post('/cancel', function(req, res) {
                                                 var replacements = {
                                                     port: req.socket.localPort,
                                                     name: user.name,
-                                                    reservation_for: req.body.reservation_for
+                                                    reservation_for: req.body.reservation_for,
+                                                    host: req.hostname
                                                 };
                                                 var htmlToSend = template(replacements);
                                                 var mailOptions = {
