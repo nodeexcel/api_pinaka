@@ -57,6 +57,7 @@ router.get('/all', function(req, res) {
 });
 
 router.post('/', function(req, res) {
+    console.log(req.body, "==================")
     var token = req.body.token;
     var feed_id = req.body.feed_id;
     var people_count = req.body.people_count;
@@ -67,8 +68,6 @@ router.post('/', function(req, res) {
     var cvv = req.body.cvv;
     var expired_m = req.body.expired_m;
     var expired_y = req.body.expired_y;
-
-    console.log(booking_time);
 
     if (token == null) {
         res.status(401).json({ code: errorcode.common.EMPTYTOKEN });
@@ -132,31 +131,49 @@ router.post('/', function(req, res) {
                         reservation.confirmation_id = res1.id;
 
                         //send mail
-                        var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px; font-weight: normal;'>PINAKA</h2>";
-                        html += "<div style='background-color: #f3f3f3; padding: 10px;'><h5 style='margin-top: 0px;font-size: 25px; text-align: center; font-weight: normal;'>$" + reservation.purchase_amount.toFixed(2) + " Paid</h3>";
-                        html += "<p style='margin-top: 30px; margin-bottom: 30px; font-size: 25px; text-align:center; font-weight: normal;'>Thanks for using Pinaka.</p>";
-                        html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + user.name + "</p>";
-                        html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'> Invoice #" + res1.id + "</p>";
-                        html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + moment().format("MMMM D YYYY") + "</p>";
-                        html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>Total: $" + reservation.purchase_amount.toFixed(2) + "</p>";
+                        // var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px; font-weight: normal;'>PINAKA</h2>";
+                        // html += "<div style='background-color: #f3f3f3; padding: 10px;'><h5 style='margin-top: 0px;font-size: 25px; text-align: center; font-weight: normal;'>$" + reservation.purchase_amount.toFixed(2) + " Paid</h3>";
+                        // html += "<p style='margin-top: 30px; margin-bottom: 30px; font-size: 25px; text-align:center; font-weight: normal;'>Thanks for using Pinaka.</p>";
+                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + user.name + "</p>";
+                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'> Invoice #" + res1.id + "</p>";
+                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + moment().format("MMMM D YYYY") + "</p>";
+                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>Total: $" + reservation.purchase_amount.toFixed(2) + "</p>";
 
-                        html += "<p style='text-align: center; font-weight: normal; margin-top: 30px; font-size: 18px;'><a href='http://pinaka.com'>View in browser</a></p>";
-                        html += "<p style='text-align:center; font-weight: normal; font-size: 18px'>Pinaka Inc. 123 Van Ness, San Fransisco " + user.zipcode + "</p></div>";
+                        // html += "<p style='text-align: center; font-weight: normal; margin-top: 30px; font-size: 18px;'><a href='http://pinaka.com'>View in browser</a></p>";
+                        // html += "<p style='text-align:center; font-weight: normal; font-size: 18px'>Pinaka Inc. 123 Van Ness, San Fransisco " + user.zipcode + "</p></div>";
+                        let tableRows = "<tr><td style='border: 1px solid #ddd;padding: 8px;''>" + booking_time + "</td>"
+                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.article + "</td>"
+                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + people_count + "</td>"
+                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.actual_price + "</td>"
+                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td>"
+                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td></tr>"
 
-                        var mailOptions = {
-                            from: 'pinaka.digital@gmail.com',
-                            to: user.email,
-                            subject: 'Payment',
-                            html: html
-                        };
+                        readfile.readHTMLFile('./public/email_templates/book_reservation.html', function(err, html) {
+                            var template = handlebars.compile(html);
+                            var replacements = {
+                                port: req.socket.localPort,
+                                name: user.name,
+                                reservation_for: req.body.reservation_for,
+                                host: req.hostname,
+                                invoice: res1.id,
+                                tablerows: tableRows
+                            };
+                            var htmlToSend = template(replacements);
+                            var mailOptions = {
+                                from: 'pinaka.digital@gmail.com',
+                                to: user.email,
+                                subject: 'payment',
+                                html: htmlToSend
+                            };
 
-                        transporter.sendMail(mailOptions, function(error, info) {
-                            if (error) {
-                                console.log(error);
-                            } else {
-                                console.log('Email sent: ' + info.response);
-                            }
-                        });
+                            transporter.sendMail(mailOptions, function(error, info) {
+                                if (error) {
+                                    console.log("email error========>", error);
+                                } else {
+                                    console.log('Email sent: ' + info.response);
+                                }
+                            });
+                        })
 
                         reservation.save(function(err) {
                             if (err) {
