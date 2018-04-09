@@ -17,7 +17,6 @@ var infusion_service = require("../service/infusion_service")
 var Interest = require('../models/interest');
 var handlebars = require('handlebars');
 var readfile = require('../service/readfile');
-var where = require('node-where');
 
 
 var transporter = nodemailer.createTransport({
