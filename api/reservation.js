@@ -57,7 +57,6 @@ router.get('/all', function(req, res) {
 });
 
 router.post('/', function(req, res) {
-    console.log(req.body, "==================")
     var token = req.body.token;
     var feed_id = req.body.feed_id;
     var people_count = req.body.people_count;
@@ -110,6 +109,7 @@ router.post('/', function(req, res) {
                 reservation.lane_count = lane_count;
                 reservation.booking_time = booking_time;
                 reservation.purchase_amount = purchase_amount;
+                reservation.reservation_hours = req.body.reservation_hours;
                 reservation.status = 0;
                 //pay stripe
                 stripe.charges.create({
