@@ -11,7 +11,8 @@ var ReservationSchema = new Schema({
     feed_id: { type: Schema.Types.ObjectId, ref: 'feeds' },
     contact_id: { type: Schema.Types.ObjectId, ref: 'contacts' },
     confirmation_id: String,
-    status: Number
+    status: Number,
+    reservation_hours: Number
 });
 
 module.exports = mongoose.model('reservation', ReservationSchema);
