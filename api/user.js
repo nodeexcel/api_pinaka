@@ -189,7 +189,7 @@ router.post('/signup', function(req, res) {
                         contact.token = md5((contact.email | contact.phone) + contact.created_at);
                         infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
                             if (infusion_data.statusCode == 201) {
-                                req.body.infusion_id = infusion_data.body.id;
+                                contact.infusion_id = infusion_data.body.id;
                                 contact.save(function(err, data) {
                                     if (err) {
                                         console.log("====", err)
@@ -197,7 +197,6 @@ router.post('/signup', function(req, res) {
                                         console.log("success")
                                         res.status(200).json(contact);
                                     }
-                                    console.log(req.socket)
                                     readfile.readHTMLFile('./public/email_templates/signup.html', function(err, html) {
                                         var template = handlebars.compile(html);
                                         var replacements = {
@@ -311,6 +310,7 @@ router.post('/logincode', function(req, res) {
 });
 
 router.post('/verifycode', function(req, res) {
+    console.log(req.body, "==================")
     var token = req.body.token;
     var code = req.body.code;
     console.log("veryfycode==========>", token + ":" + code)
