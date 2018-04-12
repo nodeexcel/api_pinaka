@@ -54,6 +54,10 @@ module.exports = {
                         "email": body.email,
                         "field": "EMAIL1"
                     }],
+                    "phone_numbers": [{
+                        "number": body.phone,
+                        "field": "PHONE1"
+                    }],
                     "given_name": body.name,
                     "family_name": body.lastName,
                     "custom_fields": [{
