@@ -438,7 +438,7 @@ router.put('/update', function(req, res) {
                         var mailOptions = {
                             from: 'pinaka.digital@gmail.com',
                             to: user.email,
-                            subject: 'Change password',
+                            subject: 'Profile Updated',
                             html: htmlToSend
                         };
 
