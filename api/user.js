@@ -192,7 +192,7 @@ router.post('/signup', function(req, res) {
                                 contact.infusion_id = infusion_data.body.id;
                                 contact.save(function(err, data) {
                                     if (err) {
-                                        console.log("====", err)
+                                        console.log("====>", err)
                                     } else {
                                         console.log("success")
                                         res.status(200).json(contact);
@@ -310,7 +310,6 @@ router.post('/logincode', function(req, res) {
 });
 
 router.post('/verifycode', function(req, res) {
-    console.log(req.body, "==================")
     var token = req.body.token;
     var code = req.body.code;
     console.log("veryfycode==========>", token + ":" + code)
@@ -595,12 +594,15 @@ router.post('/signup_login_fb', function(req, res) {
 })
 
 router.put('/change_password', function(req, res) {
+    let passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,40}$/;
     if (!req.body.email) {
         res.status(400).json({ code: errorCode.login.EMPTYEMAIL });
     } else if (!req.body.password) {
         res.status(400).json({ code: errorCode.login.EMPTYPASSWORD });
     } else if (!req.body.new_password) {
         res.status(400).json({ code: errorCode.login.EMPTYNEWPASSWORD });
+    } else if (!passwordRegex.test(req.body.new_password)) {
+        res.status(400).json({ code: errorCode.login.INVALIDNEWPASSWORD });
     } else {
         Contact.findOne({ email: req.body.email, password: md5(req.body.password) }).then((user) => {
             if (!user) {
