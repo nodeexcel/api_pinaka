@@ -32,7 +32,8 @@
         EMPTYEMAIL: 0,
         EMPTYPASSWORD: 1,
         NOTMATCH: 2,
-        EMPTYNEWPASSWORD: 3
+        EMPTYNEWPASSWORD: 3,
+        INVALIDNEWPASSWORD: 4
     },
 
     sendcode: {
