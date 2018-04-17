@@ -4,7 +4,7 @@ var errorcode = require('../constants/errorcode');
 var Contact = require('../models/contact');
 var Reservation = require('../models/reservation');
 var mongoose = require('mongoose');
-var stripe = require('stripe-api')("sk_test_ve3CtLMbyeZWis0UROEhrF0V");
+var stripe = require('stripe-api')("sk_live_ib6BSc0XCCfMX1BONJi3ksu9");
 var Credit = require('../models/credit');
 var nodemailer = require('nodemailer');
 var handlebars = require('handlebars');
@@ -131,16 +131,6 @@ router.post('/', function(req, res) {
                         reservation.confirmation_id = res1.id;
 
                         //send mail
-                        // var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px; font-weight: normal;'>PINAKA</h2>";
-                        // html += "<div style='background-color: #f3f3f3; padding: 10px;'><h5 style='margin-top: 0px;font-size: 25px; text-align: center; font-weight: normal;'>$" + reservation.purchase_amount.toFixed(2) + " Paid</h3>";
-                        // html += "<p style='margin-top: 30px; margin-bottom: 30px; font-size: 25px; text-align:center; font-weight: normal;'>Thanks for using Pinaka.</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + user.name + "</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'> Invoice #" + res1.id + "</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + moment().format("MMMM D YYYY") + "</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>Total: $" + reservation.purchase_amount.toFixed(2) + "</p>";
-
-                        // html += "<p style='text-align: center; font-weight: normal; margin-top: 30px; font-size: 18px;'><a href='http://pinaka.com'>View in browser</a></p>";
-                        // html += "<p style='text-align:center; font-weight: normal; font-size: 18px'>Pinaka Inc. 123 Van Ness, San Fransisco " + user.zipcode + "</p></div>";
                         let tableRows = "<tr><td style='border: 1px solid #ddd;padding: 8px;''>" + booking_time + "</td>"
                         tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.article + "</td>"
                         tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + people_count + "</td>"
