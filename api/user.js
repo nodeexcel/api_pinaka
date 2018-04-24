@@ -250,7 +250,7 @@ router.post('/sendcode', function(req, res) {
     else {
         twilio.messages.create({
             from: twilioConfig.from,
-            to: phone,
+            to: "+1" + phone,
             body: 'Here is verify code. ' + code
         }, function(err, result) {
             if (err) {
