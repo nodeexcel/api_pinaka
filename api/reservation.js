@@ -57,6 +57,7 @@ router.get('/all', function(req, res) {
 });
 
 router.post('/', function(req, res) {
+    console.log(reservation, "kkkkkkkkkkkkkkkkkkkkkk")
     var token = req.body.token;
     var feed_id = req.body.feed_id;
     var people_count = req.body.people_count;
@@ -272,8 +273,8 @@ router.post('/cancel', function(req, res) {
                         stripe.charges.refund(
                             reservation.confirmation_id,
                             function(err, refund) {
-                                console.log(err, "cancelllllllllllllllllll");
                                 if (err) {
+                                    console.log(err, "cancelllllllllllllllllll");
                                     res.status(403).json({ code: errorcode.reservation.UNKNOWN });
                                 } else {
                                     reservation.confirmation_id = null;
