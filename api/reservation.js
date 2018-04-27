@@ -112,6 +112,9 @@ router.post('/', function(req, res) {
                 reservation.purchase_amount = purchase_amount;
                 reservation.reservation_hours = req.body.reservation_hours;
                 reservation.status = 0;
+                if (req.body.showTime) {
+                    reservation.showTime = req.body.showTime;
+                }
                 // //pay stripe
                 // stripe.charges.create({
                 //     amount: parseFloat(reservation.purchase_amount) * 100,
@@ -191,7 +194,6 @@ router.put('/', function(req, res) {
     var booking_time = req.body.booking_time;
     var purchase_amount = req.body.purchase_amount;
     var feed_id = req.body.feed_id;
-    var showTime = req.body.showTime
 
     if (token == null) {
         res.status(401).json({ code: errorcode.common.EMPTYTOKEN });
@@ -228,9 +230,6 @@ router.put('/', function(req, res) {
                         }
                         if (purchase_amount) {
                             reservation.purchase_amount = purchase_amount;
-                        }
-                        if (showTime) {
-                            reservation.showTime = showTime;
                         }
 
                         reservation.updated_at = new Date();
