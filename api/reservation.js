@@ -190,7 +190,7 @@ router.put('/', function(req, res) {
     var booking_time = req.body.booking_time;
     var purchase_amount = req.body.purchase_amount;
     var feed_id = req.body.feed_id;
-
+    var showTime = req.body.showTime
 
     if (token == null) {
         res.status(401).json({ code: errorcode.common.EMPTYTOKEN });
@@ -227,6 +227,9 @@ router.put('/', function(req, res) {
                         }
                         if (purchase_amount) {
                             reservation.purchase_amount = purchase_amount;
+                        }
+                        if (showTime) {
+                            reservation.showTime = showTime;
                         }
 
                         reservation.updated_at = new Date();
