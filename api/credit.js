@@ -95,7 +95,7 @@ router.post('/', function(req, res) {
             if (!user) {
                 res.status(401).json({ code: errorcode.common.INVALIDTOKEN });
             } else {
-                Credit.findOne({ number: number }).then((data) => {
+                Credit.findOne({ contact_id: user._id, number: number }).then((data) => {
                     if (data) {
                         res.status(400).json({ error: 1, message: "card already exist" })
                     } else {
