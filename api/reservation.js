@@ -57,7 +57,7 @@ router.get('/all', function(req, res) {
 });
 
 router.post('/', function(req, res) {
-    console.log(reservation, "kkkkkkkkkkkkkkkkkkkkkk")
+    console.log(req.body, "kkkkkkkkkkkkkkkkkkkkkk")
     var token = req.body.token;
     var feed_id = req.body.feed_id;
     var people_count = req.body.people_count;
