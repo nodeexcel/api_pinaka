@@ -8,7 +8,7 @@ var Credit = require('../models/credit');
 var nodemailer = require('nodemailer');
 var handlebars = require('handlebars');
 var readfile = require('../service/readfile');
-var stripe = require('stripe')('sk_test_ve3CtLMbyeZWis0UROEhrF0V');
+var stripe = require('stripe')('sk_live_ib6BSc0XCCfMX1BONJi3ksu9');
 
 var transporter = nodemailer.createTransport({
     service: 'gmail',

@@ -1,6 +1,6 @@
 ﻿var express = require('express');
 var router = express.Router();
-var stripe = require('stripe')('sk_test_ve3CtLMbyeZWis0UROEhrF0V');
+var stripe = require('stripe')('sk_live_ib6BSc0XCCfMX1BONJi3ksu9');
 
 router.post('', function(req, res) {
 
