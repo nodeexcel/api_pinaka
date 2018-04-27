@@ -4,11 +4,11 @@ var errorcode = require('../constants/errorcode');
 var Contact = require('../models/contact');
 var Reservation = require('../models/reservation');
 var mongoose = require('mongoose');
-var stripe = require('stripe-api')("sk_test_ve3CtLMbyeZWis0UROEhrF0V");
 var Credit = require('../models/credit');
 var nodemailer = require('nodemailer');
 var handlebars = require('handlebars');
 var readfile = require('../service/readfile');
+var stripe = require('stripe')('sk_test_ve3CtLMbyeZWis0UROEhrF0V');
 
 var transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -111,81 +111,72 @@ router.post('/', function(req, res) {
                 reservation.purchase_amount = purchase_amount;
                 reservation.reservation_hours = req.body.reservation_hours;
                 reservation.status = 0;
-                //pay stripe
-                stripe.charges.create({
-                    amount: parseFloat(reservation.purchase_amount) * 100,
-                    currency: 'usd',
-                    card: {
-                        number: number,
-                        exp_month: expired_m,
-                        exp_year: expired_y
-                    },
-                    description: 'test payment for reservation',
-                    capture: true
-                }, function(err, res1) {
-                    console.log(err);
-                    // console.log(res1);
+                // //pay stripe
+                // stripe.charges.create({
+                //     amount: parseFloat(reservation.purchase_amount) * 100,
+                //     currency: 'usd',
+                //     card: {
+                //         number: number,
+                //         exp_month: expired_m,
+                //         exp_year: expired_y
+                //     },
+                //     description: 'test payment for reservation',
+                //     capture: true
+                // }, function(err, res1) {
+                //     console.log(err, "============================")
+                //     // console.log(res1);
 
 
-                    if (!err) {
-                        reservation.confirmation_id = res1.id;
+                //     if (!err) {
+                //         console.log("ppppppppppppppppppp")
+                reservation.confirmation_id = req.body.paymentId;
 
-                        //send mail
-                        // var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px; font-weight: normal;'>PINAKA</h2>";
-                        // html += "<div style='background-color: #f3f3f3; padding: 10px;'><h5 style='margin-top: 0px;font-size: 25px; text-align: center; font-weight: normal;'>$" + reservation.purchase_amount.toFixed(2) + " Paid</h3>";
-                        // html += "<p style='margin-top: 30px; margin-bottom: 30px; font-size: 25px; text-align:center; font-weight: normal;'>Thanks for using Pinaka.</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + user.name + "</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'> Invoice #" + res1.id + "</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>" + moment().format("MMMM D YYYY") + "</p>";
-                        // html += "<p style='font-size: 18px; text-align:left; font-weight: normal;'>Total: $" + reservation.purchase_amount.toFixed(2) + "</p>";
+                //send mail
+                let tableRows = "<tr><td style='border: 1px solid #ddd;padding: 8px;''>" + booking_time + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.article + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + people_count + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.actual_price + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td></tr>"
 
-                        // html += "<p style='text-align: center; font-weight: normal; margin-top: 30px; font-size: 18px;'><a href='http://pinaka.com'>View in browser</a></p>";
-                        // html += "<p style='text-align:center; font-weight: normal; font-size: 18px'>Pinaka Inc. 123 Van Ness, San Fransisco " + user.zipcode + "</p></div>";
-                        let tableRows = "<tr><td style='border: 1px solid #ddd;padding: 8px;''>" + booking_time + "</td>"
-                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.article + "</td>"
-                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + people_count + "</td>"
-                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.actual_price + "</td>"
-                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td>"
-                        tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td></tr>"
+                readfile.readHTMLFile('./public/email_templates/book_reservation.html', function(err, html) {
+                    var template = handlebars.compile(html);
+                    var replacements = {
+                        port: req.socket.localPort,
+                        name: user.name,
+                        reservation_for: req.body.reservation_for,
+                        host: req.hostname,
+                        invoice: req.body.paymentId,
+                        tablerows: tableRows
+                    };
+                    var htmlToSend = template(replacements);
+                    var mailOptions = {
+                        from: 'pinaka.digital@gmail.com',
+                        to: user.email,
+                        subject: 'payment',
+                        html: htmlToSend
+                    };
 
-                        readfile.readHTMLFile('./public/email_templates/book_reservation.html', function(err, html) {
-                            var template = handlebars.compile(html);
-                            var replacements = {
-                                port: req.socket.localPort,
-                                name: user.name,
-                                reservation_for: req.body.reservation_for,
-                                host: req.hostname,
-                                invoice: res1.id,
-                                tablerows: tableRows
-                            };
-                            var htmlToSend = template(replacements);
-                            var mailOptions = {
-                                from: 'pinaka.digital@gmail.com',
-                                to: user.email,
-                                subject: 'payment',
-                                html: htmlToSend
-                            };
+                    transporter.sendMail(mailOptions, function(error, info) {
+                        if (error) {
+                            console.log("email error========>", error);
+                        } else {
+                            console.log('Email sent: ' + info.response);
+                        }
+                    });
+                })
 
-                            transporter.sendMail(mailOptions, function(error, info) {
-                                if (error) {
-                                    console.log("email error========>", error);
-                                } else {
-                                    console.log('Email sent: ' + info.response);
-                                }
-                            });
-                        })
-
-                        reservation.save(function(err) {
-                            if (err) {
-                                res.status(403).json({ code: errorcode.reservation.UNKNOWN });
-                            } else {
-                                res.status(200).json(reservation);
-                            }
-                        });
+                reservation.save(function(err) {
+                    if (err) {
+                        res.status(403).json({ code: errorcode.reservation.UNKNOWN });
                     } else {
-                        res.status(402).json({ code: errorcode.reservation.INVALIDCARDINFO });
+                        res.status(200).json(reservation);
                     }
                 });
+                //     } else {
+                //         res.status(402).json({ code: errorcode.reservation.INVALIDCARDINFO });
+                //     }
+                // });
             }
         });
     }
@@ -270,6 +261,7 @@ router.post('/cancel', function(req, res) {
                     if (!reservation) {
                         res.status(401).json({ code: errorcode.reservation.INVALIDRESERVATIONID });
                     } else {
+                        console.log(reservation, "reservationmnnnnnnnnnnnnn")
                         reservation.status = 2;
                         reservation.updated_at = new Date();
 
@@ -277,7 +269,7 @@ router.post('/cancel', function(req, res) {
                         stripe.charges.refund(
                             reservation.confirmation_id,
                             function(err, refund) {
-                                console.log(err);
+                                console.log(err, "cancelllllllllllllllllll");
                                 if (err) {
                                     res.status(403).json({ code: errorcode.reservation.UNKNOWN });
                                 } else {

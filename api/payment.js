@@ -1,6 +1,6 @@
 ﻿var express = require('express');
 var router = express.Router();
-var stripe = require('stripe')('sk_test_43l781B2lemmqcwCbHvmj15D');
+var stripe = require('stripe')('sk_test_ve3CtLMbyeZWis0UROEhrF0V');
 
 router.post('', function(req, res) {
 
@@ -15,6 +15,7 @@ router.post('/stripe_payment', function(req, res) {
         source: token,
     }, function(err, charge) {
         if (err) {
+            console.log(err, "=======================")
             res.status(400).json({ error: 1, message: "error occured", err: err })
         } else {
             console.log('success payment');
