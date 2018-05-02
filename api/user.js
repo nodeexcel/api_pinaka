@@ -162,6 +162,7 @@ router.post('/signup', function(req, res) {
                     contact.Infusion_synced_date = new Date();
                     if (phone) {
                         contact.phone = phone;
+                        contact.sms_option = sms_option;
                     }
                     contact.zipcode = zipcode;
                     Interest.find({}, function(err, interestsData) {
