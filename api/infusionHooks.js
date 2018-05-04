@@ -57,9 +57,9 @@ router.post('/HookAddCustomer', function(req, res) {
                         contact.interests = interestsTextArrayForInfusion;
                         contact.Infusion_synced_date = new Date();
 
-                        let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                        let possible = "0123456789";
                         var redeem_code = '';
-                        for (var i = 0; i < 4; i++) {
+                        for (var i = 0; i < 6; i++) {
                             redeem_code += possible.charAt(Math.floor(Math.random() * possible.length));
                         }
                         var textiData = {
@@ -67,7 +67,7 @@ router.post('/HookAddCustomer', function(req, res) {
                             "mobileNum": 9713034142,
                             "shortcode": 345345,
                             "keyword": "PINAKA",
-                            "message": redeem_code
+                            "message": `Enjoy your free game of bowling. Code: ${redeem_code} Check your email and confirm for another free game.`
                         }
                         var textiRequestObj = {
                             url: `https://textiful.com/api/v1/message`,

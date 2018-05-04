@@ -11,6 +11,7 @@ module.exports = {
                 if (body.birthday) {
                     body.birthday = new Date(body.birthday)
                 }
+                console.log(body.birthday,"llllllllllllllllllllllllllllllll")
                 var data = {
                     "email_addresses": [{
                         "email": body.email,
