@@ -31,9 +31,16 @@ router.get('/', function(req, res) {
             if (!user) {
                 res.status(401).json({ code: errorcode.common.INVALIDTOKEN });
             } else {
-                Reservation.find({ contact_id: mongoose.Types.ObjectId(user._id), status: status }).populate('feed_id').exec(function(err, reservations) {
-                    res.status(200).json(reservations);
-                });
+                if (status) {
+                    Reservation.find({ contact_id: mongoose.Types.ObjectId(user._id), status: status }).populate('feed_id').exec(function(err, reservations) {
+                        res.status(200).json(reservations);
+                    });
+                } else {
+                    Reservation.find({ contact_id: mongoose.Types.ObjectId(user._id) }).populate('feed_id').exec(function(err, reservations) {
+                        res.status(200).json(reservations);
+                    });
+                }
+
             }
         });
     }
@@ -57,7 +64,6 @@ router.get('/all', function(req, res) {
 });
 
 router.post('/', function(req, res) {
-    console.log(req.body, "kkkkkkkkkkkkkkkkkkkkkk")
     var token = req.body.token;
     var feed_id = req.body.feed_id;
     var people_count = req.body.people_count;
