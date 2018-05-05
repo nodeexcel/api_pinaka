@@ -528,7 +528,6 @@ router.post('/user_find', function(req, res) {
 })
 
 router.post('/signup_login_fb', function(req, res) {
-    console.log(req.body,"=======================")
     req.body.contact_source = contact_source.app_contact_source;
     req.body.created_at = new Date();
     req.body.updated_at = new Date();

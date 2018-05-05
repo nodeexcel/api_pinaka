@@ -7,11 +7,13 @@ module.exports = {
         // infusion custom fields id get it from here - https://developer.infusionsoft.com/docs/rest/#!/Contact/listCustomFieldsUsingGET
 
         return new Promise((resolve, reject) => {
+            // body.birthday+=1;
             infusion_session.findOne().then((token) => {
                 if (body.birthday) {
-                    body.birthday = new Date(body.birthday)
+                    var tomorrow = new Date(body.birthday);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    body.birthday = tomorrow;
                 }
-                console.log(body.birthday,"llllllllllllllllllllllllllllllll")
                 var data = {
                     "email_addresses": [{
                         "email": body.email,

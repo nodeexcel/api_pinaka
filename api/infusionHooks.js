@@ -64,7 +64,7 @@ router.post('/HookAddCustomer', function(req, res) {
                         }
                         var textiData = {
                             "API_KEY_ID": "3d45188481ed352ba78bbbd3630f082b",
-                            "mobileNum": 9713034142,
+                            "mobileNum": contact.phone,
                             "shortcode": 345345,
                             "keyword": "PINAKA",
                             "message": `Enjoy your free game of bowling. Code: ${redeem_code} Check your email and confirm for another free game.`
@@ -85,6 +85,7 @@ router.post('/HookAddCustomer', function(req, res) {
                         }
                         request(textiRequestObj, function(err, response) {
                             if (err) {
+                                console.log(err, "textiful errrrrrrrrrrrrr")
                                 res.status(400).json({ error: 1, message: "error occured", err: err })
                             } else {
                                 if (response.statusCode == 200) {
