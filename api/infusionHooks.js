@@ -84,30 +84,29 @@ router.post('/HookAddCustomer', function(req, res) {
                             "type": "General"
                         }
                         request(textiRequestObj, function(err, response) {
-                            if (err) {
-                                console.log(err, "textiful errrrrrrrrrrrrr")
-                                res.status(400).json({ error: 1, message: "error occured", err: err })
-                            } else {
-                                if (response.statusCode == 200) {
-                                    console.log("message sent to user with redeem code", redeem_code)
-                                }
-                                redeemCode.update({ active_status: "Active", type: "General" }, { active_status: "InActive" }).then((resp) => {
-                                    redeemCode.create(redeemCodeData).then((data) => {
-                                        contact.save(function(err, data) {
-                                            if (err) {
-                                                res.status(400).json({ error: 1, message: "error occured", err: err })
-                                            } else {
-                                                console.log(data)
-                                            }
-                                        });
-                                        res.json({ status: 1, message: "redeem code added", data: data })
-                                    }, (err) => {
-                                        res.status(400).json({ error: 1, message: "error occured", err: err })
-                                    })
+
+                            console.log(err, "textiful errrrrrrrrrrrrr")
+
+                            if (response && response.statusCode == 200) {
+                                console.log("message sent to user with redeem code", redeem_code)
+                            }
+                            redeemCode.update({ active_status: "Active", type: "General" }, { active_status: "InActive" }).then((resp) => {
+                                redeemCode.create(redeemCodeData).then((data) => {
+                                    contact.save(function(err, data) {
+                                        if (err) {
+                                            res.status(400).json({ error: 1, message: "error occured", err: err })
+                                        } else {
+                                            console.log(data)
+                                        }
+                                    });
+                                    res.json({ status: 1, message: "redeem code added", data: data })
                                 }, (err) => {
                                     res.status(400).json({ error: 1, message: "error occured", err: err })
                                 })
-                            }
+                            }, (err) => {
+                                res.status(400).json({ error: 1, message: "error occured", err: err })
+                            })
+
 
                         })
                     })
