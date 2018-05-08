@@ -85,7 +85,7 @@ router.post('/HookAddCustomer', function(req, res) {
                         }
                         request(textiRequestObj, function(err, response) {
 
-                            console.log(err, "textiful errrrrrrrrrrrrr")
+                            console.log(err, "textiful errrrrrrrrrrrrr", response, response.statusCode)
 
                             if (response && response.statusCode == 200) {
                                 console.log("message sent to user with redeem code", redeem_code)
