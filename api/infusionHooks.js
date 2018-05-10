@@ -36,7 +36,6 @@ router.post('/HookAddCustomer', function(req, res) {
             }
             contact.contact_source = 1;
             contact.infusion_id = req.body.object_keys[0].id;
-            console.log(contact, "======================================================")
             Contact.findOne({ phone: contact.phone }).then((data) => {
                 if (!data) {
                     var requestInterestsArray = [];

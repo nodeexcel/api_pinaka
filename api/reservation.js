@@ -145,9 +145,9 @@ router.post('/', function(req, res) {
                 let tableRows = "<tr><td style='border: 1px solid #ddd;padding: 8px;''>" + booking_time + "</td>"
                 tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.article + "</td>"
                 tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + people_count + "</td>"
-                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + req.body.actual_price + "</td>"
-                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td>"
-                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + purchase_amount + "</td></tr>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + "$" + req.body.actual_price + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + "$" + purchase_amount + "</td>"
+                tableRows += "<td style='border: 1px solid #ddd;padding: 8px;''>" + "$" + purchase_amount + "</td></tr>"
 
                 readfile.readHTMLFile('./public/email_templates/book_reservation.html', function(err, html) {
                     var template = handlebars.compile(html);
@@ -156,7 +156,6 @@ router.post('/', function(req, res) {
                         name: user.name,
                         reservation_for: req.body.reservation_for,
                         host: req.hostname,
-                        invoice: req.body.paymentId,
                         tablerows: tableRows
                     };
                     var htmlToSend = template(replacements);
