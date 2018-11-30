@@ -1,10 +1,10 @@
 {
     "adminName": "test",
-    "adminPassword": "pinakadigital",
-    "adminEmail": "admin@pinakadigital.com",
+    "adminPassword": "test",
+    "adminEmail": "test@test.com",
     "role": "Admin",
-    "textiAuthorization": "Basic NWFhMjM1M2MzZmMwMzo0MDg3MGQ3MTNkMzRlNzM5MTdiOTM4NzY1NzUxOWRkMGJjN2UxOTcy",
-    "customFieldAppInstalledId": "18",
-    "customFieldInterestsId": "22",
-    "customFieldRedeemCodeFlagId": "24"
+    "textiAuthorization": "Basic aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "customFieldAppInstalledId": "1",
+    "customFieldInterestsId": "2",
+    "customFieldRedeemCodeFlagId": "3"
 }
