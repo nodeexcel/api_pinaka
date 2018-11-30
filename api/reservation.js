@@ -13,8 +13,8 @@ var stripe = require('stripe')('sk_live_ib6BSc0XCCfMX1BONJi3ksu9');
 var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'pinaka.digital@gmail.com',
-        pass: 'spvwxrwupmaqhsgw'
+        user: 'test@test.com',
+        pass: 'test'
     }
 });
 var moment = require('moment');
@@ -160,7 +160,7 @@ router.post('/', function(req, res) {
                     };
                     var htmlToSend = template(replacements);
                     var mailOptions = {
-                        from: 'pinaka.digital@gmail.com',
+                        from: 'test@test.com',
                         to: user.email,
                         subject: 'payment',
                         html: htmlToSend
@@ -297,7 +297,7 @@ router.post('/cancel', function(req, res) {
                                                 };
                                                 var htmlToSend = template(replacements);
                                                 var mailOptions = {
-                                                    from: 'pinaka.digital@gmail.com',
+                                                    from: 'test@test.com',
                                                     to: user.email,
                                                     subject: 'reservation canceled',
                                                     html: htmlToSend

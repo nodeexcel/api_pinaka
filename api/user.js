@@ -22,8 +22,8 @@ var readfile = require('../service/readfile');
 var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'pinaka.digital@gmail.com',
-        pass: 'spvwxrwupmaqhsgw'
+        user: 'test@test.com',
+        pass: 'test'
     }
 });
 
@@ -188,9 +188,10 @@ router.post('/signup', function(req, res) {
                             contact.interests = interestDATA;
                         }
                         contact.token = md5((contact.email | contact.phone) + contact.created_at);
-                        infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
-                            if (infusion_data.statusCode == 201) {
-                                contact.infusion_id = infusion_data.body.id;
+                        // infusion_service.createContact(contact, interestsTextArrayForInfusion).then((infusion_data) => {
+                            // if (infusion_data.statusCode == 201) {
+                                // contact.infusion_id = infusion_data.body.id;
+                                contact.infusion_id = Date.now()
                                 contact.save(function(err, data) {
                                     if (err) {
                                         console.log("====>", err)
@@ -198,34 +199,34 @@ router.post('/signup', function(req, res) {
                                         console.log("success")
                                         res.status(200).json(contact);
                                     }
-                                    readfile.readHTMLFile('./public/email_templates/signup.html', function(err, html) {
-                                        var template = handlebars.compile(html);
-                                        var replacements = {
-                                            username: email,
-                                            port: req.socket.localPort,
-                                            name: name,
-                                            randomPassword: random_password,
-                                            host: req.hostname
-                                        };
-                                        var htmlToSend = template(replacements);
-                                        var mailOptions = {
-                                            from: 'pinaka.digital@gmail.com',
-                                            to: contact.email,
-                                            subject: 'Welcome to Pinaka',
-                                            html: htmlToSend
-                                        };
+                                    // readfile.readHTMLFile('./public/email_templates/signup.html', function(err, html) {
+                                    //     var template = handlebars.compile(html);
+                                    //     var replacements = {
+                                    //         username: email,
+                                    //         port: req.socket.localPort,
+                                    //         name: name,
+                                    //         randomPassword: random_password,
+                                    //         host: req.hostname
+                                    //     };
+                                    //     var htmlToSend = template(replacements);
+                                    //     var mailOptions = {
+                                    //         from: 'test@test.com',
+                                    //         to: contact.email,
+                                    //         subject: 'Welcome to Pinaka',
+                                    //         html: htmlToSend
+                                    //     };
 
-                                        transporter.sendMail(mailOptions, function(error, info) {
-                                            if (error) {
-                                                console.log("email error========>", error);
-                                            } else {
-                                                console.log('Email sent: ' + info.response);
-                                            }
-                                        });
-                                    })
+                                    //     transporter.sendMail(mailOptions, function(error, info) {
+                                    //         if (error) {
+                                    //             console.log("email error========>", error);
+                                    //         } else {
+                                    //             console.log('Email sent: ' + info.response);
+                                    //         }
+                                    //     });
+                                    // })
                                 });
-                            }
-                        })
+                            // }
+                        // })
                     })
                 }
             });
@@ -436,7 +437,7 @@ router.put('/update', function(req, res) {
                         };
                         var htmlToSend = template(replacements);
                         var mailOptions = {
-                            from: 'pinaka.digital@gmail.com',
+                            from: 'test@test.com',
                             to: user.email,
                             subject: 'Profile Updated',
                             html: htmlToSend
@@ -494,7 +495,7 @@ router.post('/forgot', function(req, res) {
                         };
                         var htmlToSend = template(replacements);
                         var mailOptions = {
-                            from: 'pinaka.digital@gmail.com',
+                            from: 'test@test.com',
                             to: email,
                             subject: 'Forgot password',
                             html: htmlToSend,
