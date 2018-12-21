@@ -7,7 +7,7 @@ var md5 = require('md5');
 var auth = require("../middleware/auth");
 var jwt = require("jsonwebtoken");
 var user_activity = require("../service/user_activity")
-var infusion_service = require("../service/infusion_service")
+// var infusion_service = require("../service/infusion_service")
 var redeemCode = require('../models/redeemCode');
 var admin_logs = require("../models/admin_logs")
 var Interest = require('../models/interest');
@@ -294,9 +294,9 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                                 }
                             }
                         }
-                        infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
-                            if (infusion_data.statusCode == 201) {
-                                contact.infusion_id = infusion_data.body.id;
+                        // infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                        //     if (infusion_data.statusCode == 201) {
+                        //         contact.infusion_id = infusion_data.body.id;
                                 contact.save(function(err, data) {
                                     if (err) {
                                         res.status(400).json({ error: 1, message: "error occured", err: err })
@@ -305,10 +305,10 @@ router.post('/addCustomer', auth.requiresAdmin, function(req, res) {
                                         callback(data);
                                     }
                                 });
-                            } else {
-                                res.status(400).json({ error: 1, message: "can not add on infusionsoft", data: infusion_data })
-                            }
-                        })
+                        //     } else {
+                        //         res.status(400).json({ error: 1, message: "can not add on infusionsoft", data: infusion_data })
+                        //     }
+                        // })
                     });
                 }
             });
@@ -360,29 +360,29 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
                                         req.body.CodeRedeemFlag = true;
                                         req.body.redeemCode = req.body.redeem_code;
                                         req.body.reddeemed_date = new Date();
-                                        infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
-                                            if (infusion_data.statusCode == 200) {
+                                        // infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                                        //     if (infusion_data.statusCode == 200) {
                                                 updateCustomers(function(response) {
                                                     res.json({ status: 1, message: "customer details updated", data: response })
                                                 })
-                                            } else {
-                                                res.json(infusion_data)
-                                            }
-                                        })
+                                        //     } else {
+                                        //         res.json(infusion_data)
+                                        //     }
+                                        // })
                                     } else {
                                         res.status(400).json({ error: 1, message: "redeem code does not exist or it's not active" });
                                     }
                                 })
                             } else {
-                                infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
-                                    if (infusion_data.statusCode == 200) {
+                                // infusion_service.updateContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                                //     if (infusion_data.statusCode == 200) {
                                         updateCustomers(function(response) {
                                             res.json({ status: 1, message: "customer details updated", data: response })
                                         })
-                                    } else {
-                                        res.json({ error: 1, message: "something went wrong on infusiosoft", data: infusion_data })
-                                    }
-                                })
+                                //     } else {
+                                //         res.json({ error: 1, message: "something went wrong on infusiosoft", data: infusion_data })
+                                //     }
+                                // })
                             }
                         })
                     } else {
@@ -422,14 +422,14 @@ router.put('/updateCustomer', auth.requiresAdmin, function(req, res) {
 
 router.delete('/deleteCustomer', auth.requiresAdmin, function(req, res) {
     if (req.body.infusion_id) {
-        infusion_service.deleteContact(req.body).then((infusion_data) => {
+        // infusion_service.deleteContact(req.body).then((infusion_data) => {
             Contact.remove({ _id: req.body._id }).then((data) => {
                 res.json({ status: 1, message: "customer deleted", data: data })
             }, (err) => {
                 user_activity.userActivityLogs(req, data);
                 res.status(400).json({ error: 1, message: "error occured", err: err })
             })
-        })
+        // })
     } else {
         Contact.remove({ _id: req.body._id }).then((data) => {
             res.json({ status: 1, message: "customer deleted", data: data })

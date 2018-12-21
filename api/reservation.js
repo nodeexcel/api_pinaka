@@ -5,18 +5,18 @@ var Contact = require('../models/contact');
 var Reservation = require('../models/reservation');
 var mongoose = require('mongoose');
 var Credit = require('../models/credit');
-var nodemailer = require('nodemailer');
+// var nodemailer = require('nodemailer');
 var handlebars = require('handlebars');
 var readfile = require('../service/readfile');
-var stripe = require('stripe')('sk_live_ib6BSc0XCCfMX1BONJi3ksu9');
+// var stripe = require('stripe')('sk_live_ib6BSc0XCCfMX1BONJi3ksu9');
 
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'test@test.com',
-        pass: 'test'
-    }
-});
+// var transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: 'test@test.com',
+//         pass: 'test'
+//     }
+// });
 var moment = require('moment');
 
 router.get('/', function(req, res) {
@@ -166,13 +166,13 @@ router.post('/', function(req, res) {
                         html: htmlToSend
                     };
 
-                    transporter.sendMail(mailOptions, function(error, info) {
-                        if (error) {
-                            console.log("email error========>", error);
-                        } else {
-                            console.log('Email sent: ' + info.response);
-                        }
-                    });
+                    // transporter.sendMail(mailOptions, function(error, info) {
+                    //     if (error) {
+                    //         console.log("email error========>", error);
+                    //     } else {
+                    //         console.log('Email sent: ' + info.response);
+                    //     }
+                    // });
                 })
 
                 reservation.save(function(err) {
@@ -274,13 +274,13 @@ router.post('/cancel', function(req, res) {
                         reservation.updated_at = new Date();
 
                         //refunds
-                        stripe.charges.refund(
-                            reservation.confirmation_id,
-                            function(err, refund) {
-                                if (err) {
-                                    console.log(err, "cancelllllllllllllllllll");
-                                    res.status(403).json({ code: errorcode.reservation.UNKNOWN });
-                                } else {
+                        // stripe.charges.refund(
+                        //     reservation.confirmation_id,
+                        //     function(err, refund) {
+                        //         if (err) {
+                        //             console.log(err, "cancelllllllllllllllllll");
+                        //             res.status(403).json({ code: errorcode.reservation.UNKNOWN });
+                        //         } else {
                                     reservation.confirmation_id = null;
                                     reservation.save(function(err) {
                                         if (err) {
@@ -303,18 +303,18 @@ router.post('/cancel', function(req, res) {
                                                     html: htmlToSend
                                                 };
 
-                                                transporter.sendMail(mailOptions, function(error, info) {
-                                                    if (error) {
-                                                        console.log("email error========>", error);
-                                                    } else {
-                                                        console.log('Email sent: ' + info.response);
-                                                    }
-                                                });
+                                                // transporter.sendMail(mailOptions, function(error, info) {
+                                                //     if (error) {
+                                                //         console.log("email error========>", error);
+                                                //     } else {
+                                                //         console.log('Email sent: ' + info.response);
+                                                //     }
+                                                // });
                                             })
                                         }
                                     });
-                                }
-                            });
+                            //     }
+                            // });
                     }
                 });
             }
@@ -344,23 +344,25 @@ router.post('/pay', function(req, res) {
                             if (!credit) {
                                 res.status(401).json({ code: errorcode.credit.INVALIDID });
                             } else {
-                                stripe.charges.create({
-                                    amount: reservation.purchase_amount,
-                                    currency: 'usd',
-                                    card: {
-                                        number: credit.number,
-                                        exp_month: credit.expired_m,
-                                        exp_year: credit.expired_y
-                                    },
-                                    description: 'test payment for reservation',
-                                    capture: false
-                                }, function(err, res) {
-                                    if (!err) {
+                                console.log("----------------------------------")
+                                res.json({status:1, message:"success"})
+                                // stripe.charges.create({
+                                //     amount: reservation.purchase_amount,
+                                //     currency: 'usd',
+                                //     card: {
+                                //         number: credit.number,
+                                //         exp_month: credit.expired_m,
+                                //         exp_year: credit.expired_y
+                                //     },
+                                //     description: 'test payment for reservation',
+                                //     capture: false
+                                // }, function(err, res) {
+                                //     if (!err) {
 
-                                    } else {
-                                        res.status(402).json({ code: errorcode.credit.INVALIDNUMBER });
-                                    }
-                                });
+                                //     } else {
+                                //         res.status(402).json({ code: errorcode.credit.INVALIDNUMBER });
+                                //     }
+                                // });
                             }
                         });
                     }

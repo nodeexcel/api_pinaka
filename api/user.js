@@ -4,28 +4,28 @@ var router = express.Router();
 var errorCode = require('../constants/errorcode');
 var Contact = require('../models/contact');
 var md5 = require('md5');
-var Twilio = require('twilio');
-var twilioConfig = require('../constants/twilio');
-var twilio = Twilio(twilioConfig.acccountSId, twilioConfig.authToken);
+// var Twilio = require('twilio');
+// var twilioConfig = require('../constants/twilio');
+// var twilio = Twilio(twilioConfig.acccountSId, twilioConfig.authToken);
 var Sms = require('../models/sms');
 var ContactInterest = require('../models/contactinterest');
 var Credit = require('../models/credit');
 var mongoose = require('mongoose');
-var nodemailer = require('nodemailer');
+// var nodemailer = require('nodemailer');
 var contact_source = require('../constants/contact_source');
-var infusion_service = require("../service/infusion_service")
+// var infusion_service = require("../service/infusion_service")
 var Interest = require('../models/interest');
 var handlebars = require('handlebars');
 var readfile = require('../service/readfile');
 
 
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'test@test.com',
-        pass: 'test'
-    }
-});
+// var transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: 'test@test.com',
+//         pass: 'test'
+//     }
+// });
 
 router.get('/profile', function(req, res) {
     var token = req.query.token;
@@ -250,14 +250,14 @@ router.post('/sendcode', function(req, res) {
         res.status(402).json({ code: errorCode.sendcode.INVALIDPHONE });
     }*/
     else {
-        twilio.messages.create({
-            from: twilioConfig.from,
-            to: "+1" + phone,
-            body: 'Here is verify code. ' + code
-        }, function(err, result) {
-            if (err) {
-                res.status(402).json({ code: errorCode.sendcode.INVALIDPHONE });
-            } else {
+        // twilio.messages.create({
+        //     from: twilioConfig.from,
+        //     to: "+1" + phone,
+        //     body: 'Here is verify code. ' + code
+        // }, function(err, result) {
+        //     if (err) {
+        //         res.status(402).json({ code: errorCode.sendcode.INVALIDPHONE });
+        //     } else {
                 //create code for sms verification
                 var sms = new Sms();
                 sms.phone = phone;
@@ -266,8 +266,8 @@ router.post('/sendcode', function(req, res) {
                 sms.token = md5(sms.created_at);
                 sms.save();
                 res.status(200).json({ token: sms.token });
-            }
-        });
+        //     }
+        // });
     }
 });
 
@@ -443,13 +443,13 @@ router.put('/update', function(req, res) {
                             html: htmlToSend
                         };
 
-                        transporter.sendMail(mailOptions, function(error, info) {
-                            if (error) {
-                                console.log("Email err========>", error);
-                            } else {
-                                console.log('Email sent: ' + info.response);
-                            }
-                        });
+                        // transporter.sendMail(mailOptions, function(error, info) {
+                        //     if (error) {
+                        //         console.log("Email err========>", error);
+                        //     } else {
+                        //         console.log('Email sent: ' + info.response);
+                        //     }
+                        // });
                     })
                     Contact.findOne({ token: token }).populate('interests.id').exec(function(err, user1) {
                         Credit.find({ contact_id: mongoose.Types.ObjectId(user1._id) }, function(err, credits) {
@@ -502,13 +502,13 @@ router.post('/forgot', function(req, res) {
                             host: req.hostname
                         };
 
-                        transporter.sendMail(mailOptions, function(error, info) {
-                            if (error) {
-                                console.log("Email err========>", error);
-                            } else {
-                                console.log('Email sent: ' + info.response);
-                            }
-                        });
+                        // transporter.sendMail(mailOptions, function(error, info) {
+                        //     if (error) {
+                        //         console.log("Email err========>", error);
+                        //     } else {
+                        //         console.log('Email sent: ' + info.response);
+                        //     }
+                        // });
                     })
                     res.status(200).json({});
                 })
@@ -576,9 +576,9 @@ router.post('/signup_login_fb', function(req, res) {
                         }
                         req.body.interests = interestDATA;
                     }
-                    infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
-                        if (infusion_data.statusCode == 201) {
-                            req.body.infusion_id = infusion_data.body.id;
+                    // infusion_service.createContact(req.body, interestsTextArrayForInfusion).then((infusion_data) => {
+                    //     if (infusion_data.statusCode == 201) {
+                    //         req.body.infusion_id = infusion_data.body.id;
                             Contact.create(req.body).then((data) => {
                                 Credit.find({ contact_id: mongoose.Types.ObjectId(data._id) }, function(err, credits) {
                                     var ret = JSON.parse(JSON.stringify(data));
@@ -586,10 +586,10 @@ router.post('/signup_login_fb', function(req, res) {
                                     res.status(200).json(ret);
                                 });
                             })
-                        } else {
-                            res.status(400).json({ error: 1, message: "something went wrong on infusionsoft" })
-                        }
-                    })
+                    //     } else {
+                    //         res.status(400).json({ error: 1, message: "something went wrong on infusionsoft" })
+                    //     }
+                    // })
                 })
             }
         })

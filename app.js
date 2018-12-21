@@ -7,8 +7,8 @@ var bodyParser = require('body-parser');
 var fileupload = require('express-fileupload');
 var cors = require('cors');
 var Admin = require('./service/admin');
-var infusionHooks = require('./api/infusionHooks')
-var cron = require('./cron/cron.js')
+// var infusionHooks = require('./api/infusionHooks')
+// var cron = require('./cron/cron.js')
 
 var user = require('./api/user');
 var interest = require('./api/interest');
@@ -52,7 +52,7 @@ app.use('/api/saved', saved);
 app.use('/api/payment', payment);
 app.use('/api/admin', admin);
 app.use('/api/RedeemCode', redeemCode);
-app.use('/api/infusionHooks', infusionHooks);
+// app.use('/api/infusionHooks', infusionHooks);
 app.use('/api/dashBoard', dashBoard);
 
 
@@ -65,7 +65,7 @@ var mongodb = require('mongoose');
 var Interests = require('./models/interest');
 var InterestValues = require('./constants/interests');
 
-mongodb.connect(mDBConfig.pub_url, { useMongoClient: true }).then(function() {
+mongodb.connect(mDBConfig.dev_url, { useMongoClient: true }).then(function() {
     console.log("mongodb is connected...");
     Admin.defaultAdmin();
     //init interests collections
@@ -92,7 +92,7 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
-cron.updateAccessToken();
+// cron.updateAccessToken();
 // error handlers
 
 // development error handler
