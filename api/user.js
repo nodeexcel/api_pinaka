@@ -113,10 +113,7 @@ router.post('/signup', function(req, res) {
             phone = phone.trim();
         }
         let possible = "abcdefghijklmnopqrstuvwxyz0123456789";
-        var random_password = '';
-        for (var i = 0; i < 6; i++) {
-            random_password += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
+        var random_password = 'java@123';
 
         //email, birthday, phone number, zipcode, gender, kids, marital, interest, type validate
         var reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
