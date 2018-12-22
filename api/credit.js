@@ -74,75 +74,76 @@ router.get('/all', function(req, res) {
 });
 
 router.post('/', function(req, res) {
-    var token = req.body.token;
-    var number = req.body.number;
-    var expired_m = req.body.expired_m;
-    var expired_y = req.body.expired_y;
-    var cvv = req.body.cvv;
+    res.json("sucess")
+    // var token = req.body.token;
+    // var number = req.body.number;
+    // var expired_m = req.body.expired_m;
+    // var expired_y = req.body.expired_y;
+    // var cvv = req.body.cvv;
 
-    if (token == null) {
-        res.status(401).json({ code: errorcode.common.EMPTYTOKEN });
-    } else if (number == null || number == '') {
-        res.status(401).json({ code: errorcode.credit.EMPTYNUMBER });
-    } else if (expired_y == null || expired_y == '') {
-        res.status(401).json({ code: errorcode.credit.EMPTYEXPIREDYEAR });
-    } else if (expired_m == null || expired_m == '') {
-        res.status(401).json({ code: errorcode.credit.EMPTYEXPIREDYEAR });
-    } else if (cvv == null || cvv == '') {
-        res.status(401).json({ code: errorcode.credit.EMPTYCVV });
-    } else {
-        Contact.findOne({ token: token }, function(err, user) {
-            if (!user) {
-                res.status(401).json({ code: errorcode.common.INVALIDTOKEN });
-            } else {
-                Credit.findOne({ contact_id: user._id, number: number }).then((data) => {
-                    if (data) {
-                        res.status(400).json({ error: 1, message: "card already exist" })
-                    } else {
-                        var type = CreditCard.determineCardType(number, { allowPartial: true });
-                        var card = {
-                            cardType: type,
-                            number: number,
-                            expiryMonth: expired_m,
-                            expiryYear: expired_y,
-                            cvv: cvv
-                        };
+    // if (token == null) {
+    //     res.status(401).json({ code: errorcode.common.EMPTYTOKEN });
+    // } else if (number == null || number == '') {
+    //     res.status(401).json({ code: errorcode.credit.EMPTYNUMBER });
+    // } else if (expired_y == null || expired_y == '') {
+    //     res.status(401).json({ code: errorcode.credit.EMPTYEXPIREDYEAR });
+    // } else if (expired_m == null || expired_m == '') {
+    //     res.status(401).json({ code: errorcode.credit.EMPTYEXPIREDYEAR });
+    // } else if (cvv == null || cvv == '') {
+    //     res.status(401).json({ code: errorcode.credit.EMPTYCVV });
+    // } else {
+    //     Contact.findOne({ token: token }, function(err, user) {
+    //         if (!user) {
+    //             res.status(401).json({ code: errorcode.common.INVALIDTOKEN });
+    //         } else {
+    //             Credit.findOne({ contact_id: user._id, number: number }).then((data) => {
+    //                 if (data) {
+    //                     res.status(400).json({ error: 1, message: "card already exist" })
+    //                 } else {
+    //                     var type = CreditCard.determineCardType(number, { allowPartial: true });
+    //                     var card = {
+    //                         cardType: type,
+    //                         number: number,
+    //                         expiryMonth: expired_m,
+    //                         expiryYear: expired_y,
+    //                         cvv: cvv
+    //                     };
 
-                        var validation = CreditCard.validate(card);
+    //                     var validation = CreditCard.validate(card);
 
-                        if (!validation.validCardNumber) {
-                            res.status(401).json({ code: errorcode.credit.INVALIDNUMBER });
-                        } else if (!validation.validExpiryYear) {
-                            res.status(401).json({ code: errorcode.credit.INVALIDEXPIREDYEAR });
-                        } else if (!validation.validExpiryMonth) {
-                            res.status(401).json({ code: errorcode.credit.INVALIDEXPIREDMONTH });
-                        } else if (!validation.validCvv) {
-                            res.status(401).json({ code: errorcode.credit.INVALIDCVV });
-                        } else if (validation.isExpired) {
-                            res.status(402).json({ code: errorcode.credit.EXPIRED });
-                        } else {
-                            var credit = new Credit;
-                            credit.number = validation.card.number;
-                            credit.type = validation.card.cardType;
-                            credit.expired_y = validation.card.expiryYear;
-                            credit.expired_m = validation.card.expiryMonth;
-                            credit.cvv = validation.card.cvv;
-                            credit.contact_id = user._id;
-                            credit.created_at = new Date();
-                            credit.updated_at = new Date();
-                            credit.save(function(err) {
-                                if (err) {
-                                    res.status(403).json({});
-                                } else {
-                                    res.status(200).json(credit);
-                                }
-                            });
-                        }
-                    }
-                })
-            }
-        });
-    }
+    //                     if (!validation.validCardNumber) {
+    //                         res.status(401).json({ code: errorcode.credit.INVALIDNUMBER });
+    //                     } else if (!validation.validExpiryYear) {
+    //                         res.status(401).json({ code: errorcode.credit.INVALIDEXPIREDYEAR });
+    //                     } else if (!validation.validExpiryMonth) {
+    //                         res.status(401).json({ code: errorcode.credit.INVALIDEXPIREDMONTH });
+    //                     } else if (!validation.validCvv) {
+    //                         res.status(401).json({ code: errorcode.credit.INVALIDCVV });
+    //                     } else if (validation.isExpired) {
+    //                         res.status(402).json({ code: errorcode.credit.EXPIRED });
+    //                     } else {
+    //                         var credit = new Credit;
+    //                         credit.number = validation.card.number;
+    //                         credit.type = validation.card.cardType;
+    //                         credit.expired_y = validation.card.expiryYear;
+    //                         credit.expired_m = validation.card.expiryMonth;
+    //                         credit.cvv = validation.card.cvv;
+    //                         credit.contact_id = user._id;
+    //                         credit.created_at = new Date();
+    //                         credit.updated_at = new Date();
+    //                         credit.save(function(err) {
+    //                             if (err) {
+    //                                 res.status(403).json({});
+    //                             } else {
+    //                                 res.status(200).json(credit);
+    //                             }
+    //                         });
+    //                     }
+    //                 }
+    //             })
+    //         }
+    //     });
+    // }
 });
 
 router.put('/', function(req, res) {
