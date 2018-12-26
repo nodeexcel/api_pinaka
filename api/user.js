@@ -542,6 +542,7 @@ router.post('/signup_login_fb', function(req, res) {
         Contact.findOne({ $or: [{ email: req.body.email }, { facebookId: req.body.facebookId }] }).then((data) => {
             if (data) {
                 Credit.find({ contact_id: mongoose.Types.ObjectId(data._id) }, function(err, credits) {
+                    console.log(err,"---------------------------------------------")
                     var ret = JSON.parse(JSON.stringify(data));
                     ret["creditcards"] = credits;
                     res.status(200).json(ret);
@@ -589,6 +590,9 @@ router.post('/signup_login_fb', function(req, res) {
                     // })
                 })
             }
+        }, (err) => {
+            console.log(err,"========================================")
+            res.status(400).json({ error: 1, message: "error occured", err: err })
         })
     }
 })
