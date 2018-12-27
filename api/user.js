@@ -515,8 +515,8 @@ router.post('/forgot', function(req, res) {
 });
 
 router.post('/user_find', function(req, res) {
-    var email = req.body.email;
-    Contact.findOne({ email: email }, function(err, user) {
+    var facebookId = req.body.facebookId;
+    Contact.findOne({ facebookId: facebookId }, function(err, user) {
         if (!user) {
             res.json({ status: 0, message: 'user not exists', data: user })
         } else {
