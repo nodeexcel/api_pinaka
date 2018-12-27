@@ -532,11 +532,7 @@ router.post('/signup_login_fb', function(req, res) {
     req.body.app_installed = true;
     req.body.token = md5((req.body.email | req.body.facebookId) + req.body.created_at);
     var reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (!req.body.email) {
-        res.status(400).json({ code: errorCode.signup.EMPTYEMAIL });
-    } else if (!reg.test(req.body.email)) {
-        res.status(400).json({ code: errorCode.signup.INVALIDEMAIL });
-    } else if (!req.body.facebookId) {
+    if (!req.body.facebookId) {
         res.status(400).json({ code: errorCode.signup.EMPTYFACEBOOKID });
     } else {
         Contact.findOne({ $or: [{ email: req.body.email }, { facebookId: req.body.facebookId }] }).then((data) => {
