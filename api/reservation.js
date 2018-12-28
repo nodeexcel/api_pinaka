@@ -253,7 +253,6 @@ router.put('/', function(req, res) {
 });
 
 router.post('/cancel', function(req, res) {
-    console.log(req.body,"pppppppppppppppppppppppppppppppppppppppppppppp")
     var token = req.body.token;
     var reservation_id = req.body.reservation_id;
 
@@ -268,14 +267,12 @@ router.post('/cancel', function(req, res) {
             } else {
                 Reservation.findById(reservation_id, function(err, reservation) {
                     if (!reservation) {
-                        console.log("tttttttttttttttttttttttttttttttttttttttt")
                         res.status(401).json({ code: errorcode.reservation.INVALIDRESERVATIONID });
                     } else {
-                        console.log("===================================================================")
-                        reservation = JSON.parse(JSON.stringify(reservation));
-                        // console.log(reservation, "reservationmnnnnnnnnnnnnn")
+                        console.log(reservation, "reservationmnnnnnnnnnnnnn")
                         reservation.status = 2;
                         reservation.updated_at = new Date();
+
                         //refunds
                         // stripe.charges.refund(
                         //     reservation.confirmation_id,
@@ -285,8 +282,10 @@ router.post('/cancel', function(req, res) {
                         //             res.status(403).json({ code: errorcode.reservation.UNKNOWN });
                         //         } else {
                                     reservation.confirmation_id = null;
-                                    reservation.update({ _id: reservation_id }, reservation).then((data)=>{
-                                            console.log(reservation,reservation_id,data,"---------------------------------------------------------")
+                                    reservation.save(function(err) {
+                                        if (err) {
+                                            res.status(403).json({ code: errorcode.reservation.UNKNOWN });
+                                        } else {
                                             res.status(200).json(reservation);
                                             readfile.readHTMLFile('./public/email_templates/cancel_reservation.html', function(err, html) {
                                                 var template = handlebars.compile(html);
@@ -312,6 +311,7 @@ router.post('/cancel', function(req, res) {
                                                 //     }
                                                 // });
                                             })
+                                        }
                                     });
                             //     }
                             // });
