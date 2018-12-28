@@ -253,6 +253,7 @@ router.put('/', function(req, res) {
 });
 
 router.post('/cancel', function(req, res) {
+    console.log(req.body,"pppppppppppppppppppppppppppppppppppppppppppppp")
     var token = req.body.token;
     var reservation_id = req.body.reservation_id;
 
