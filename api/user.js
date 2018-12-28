@@ -419,6 +419,7 @@ router.put('/update', function(req, res) {
                 }
 
                 user.updated_at = new Date();
+                console.log(user,"pppppppppppppppppppppppppppppppp")
                 Contact.update({ _id: user._id }, user).then((data) => {
                     var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
                     html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
