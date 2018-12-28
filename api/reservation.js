@@ -270,10 +270,9 @@ router.post('/cancel', function(req, res) {
                         res.status(401).json({ code: errorcode.reservation.INVALIDRESERVATIONID });
                     } else {
                         reservation = JSON.parse(JSON.stringify(reservation));
-                        console.log(reservation, "reservationmnnnnnnnnnnnnn")
+                        // console.log(reservation, "reservationmnnnnnnnnnnnnn")
                         reservation.status = 2;
                         reservation.updated_at = new Date();
-
                         //refunds
                         // stripe.charges.refund(
                         //     reservation.confirmation_id,
@@ -284,9 +283,7 @@ router.post('/cancel', function(req, res) {
                         //         } else {
                                     reservation.confirmation_id = null;
                                     reservation.update({ _id: reservation_id }, reservation).then((data)=>{
-                                        if (err) {
-                                            res.status(403).json({ code: errorcode.reservation.UNKNOWN });
-                                        } else {
+                                            console.log(reservation,reservation_id,data,"---------------------------------------------------------")
                                             res.status(200).json(reservation);
                                             readfile.readHTMLFile('./public/email_templates/cancel_reservation.html', function(err, html) {
                                                 var template = handlebars.compile(html);
@@ -312,7 +309,6 @@ router.post('/cancel', function(req, res) {
                                                 //     }
                                                 // });
                                             })
-                                        }
                                     });
                             //     }
                             // });
