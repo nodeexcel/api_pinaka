@@ -269,6 +269,7 @@ router.post('/cancel', function(req, res) {
                     if (!reservation) {
                         res.status(401).json({ code: errorcode.reservation.INVALIDRESERVATIONID });
                     } else {
+                        reservation = JSON.parse(JSON.stringify(reservation));
                         console.log(reservation, "reservationmnnnnnnnnnnnnn")
                         reservation.status = 2;
                         reservation.updated_at = new Date();
