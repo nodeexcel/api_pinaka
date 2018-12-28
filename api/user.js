@@ -375,6 +375,7 @@ router.put('/update', function(req, res) {
             if (!user) {
                 res.status(401).json({ code: errorCode.common.INVALIDTOKEN });
             } else {
+                user = JSON.parse(JSON.stringify(user));
                 //update data
                 if (name) {
                     user.name = name;
@@ -418,36 +419,13 @@ router.put('/update', function(req, res) {
                 }
 
                 user.updated_at = new Date();
-                user.save(function() {
+                Contact.update({ _id: user._id }, user).then((data) => {
                     var html = "<h2 style='background-color: rgb(16,28,90); color: #fff; padding-top: 10px; padding-bottom: 10px;text-align:center; margin-bottom: 0px;'>PINAKA</h2>";
                     html += "<div style='background-color: #f3f3f3; padding: 10px;'><h3 style='margin-top: 0px;'>Hi <font color='#465e82'>@" + user.name + "</font>,</h3>";
                     html += "<p>We got a request to change your pinaka password.</p>";
                     html += "<p>If you didn't changed a password, <a href='http://pinaka.com' style='color: rgb(16,28,90)'>let us know</a></p></div>";
 
-                    //send email
-                    readfile.readHTMLFile('./public/email_templates/update_profile.html', function(err, html) {
-                        var template = handlebars.compile(html);
-                        var replacements = {
-                            port: req.socket.localPort,
-                            name: user.name,
-                            host: req.hostname
-                        };
-                        var htmlToSend = template(replacements);
-                        var mailOptions = {
-                            from: 'test@test.com',
-                            to: user.email,
-                            subject: 'Profile Updated',
-                            html: htmlToSend
-                        };
-
-                        // transporter.sendMail(mailOptions, function(error, info) {
-                        //     if (error) {
-                        //         console.log("Email err========>", error);
-                        //     } else {
-                        //         console.log('Email sent: ' + info.response);
-                        //     }
-                        // });
-                    })
+                    
                     Contact.findOne({ token: token }).populate('interests.id').exec(function(err, user1) {
                         Credit.find({ contact_id: mongoose.Types.ObjectId(user1._id) }, function(err, credits) {
                             var ret = JSON.parse(JSON.stringify(user1));
@@ -526,6 +504,7 @@ router.post('/user_find', function(req, res) {
 })
 
 router.post('/signup_login_fb', function(req, res) {
+    console.log(req.body,"bodyyyyyyyyyyyyyyyyyyyyyyyyyyy")
     req.body.contact_source = contact_source.app_contact_source;
     req.body.created_at = new Date();
     req.body.updated_at = new Date();
