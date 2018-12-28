@@ -282,7 +282,7 @@ router.post('/cancel', function(req, res) {
                         //             res.status(403).json({ code: errorcode.reservation.UNKNOWN });
                         //         } else {
                                     reservation.confirmation_id = null;
-                                    reservation.save(function(err) {
+                                    reservation.update({ _id: reservation_id }, reservation).then((data)=>{
                                         if (err) {
                                             res.status(403).json({ code: errorcode.reservation.UNKNOWN });
                                         } else {
